@@ -2,6 +2,41 @@
 
 Context for agentic coding systems working on this project.
 
+## Specialist Agent Usage
+
+### When to Invoke Specialists
+
+- **explore**: For exploring codebase and understanding its structure
+- **builder**: For implementing features, fixing bugs, or making code changes
+- **senior-builder**: Use this specialist when `builder` is unable to resolve complex issues or when the codebase requires significant refactoring.
+- **junior-builder**: For implementing small, easy, fast, and straightforward changes
+- **reviewer**: Review code before moving to QA
+- **qa-specialist**: Audit code, verifies file structures, and runs tests
+- **debugger**: When encountering bugs, issues, runtime errors or logical bugs
+- **researcher**: For gathering documentation, examples, or best practices
+- **git-committer**: To commit changes with appropriate messages
+- **vitest-specialist**: For writing and maintaining tests (when tests are added)
+- **technical-writer**: For adding, updating, or fixing documentation
+- **maintenance-specialist**: Handles debt reduction, log removal, formatting, and file deletion.
+
+### Workflow Guidelines
+
+1. **Plan**: Understand requirements and create implementation plan
+2. **Build**: Use builder agent to implement changes
+3. **Review**: Use reviewer agent to check code quality
+4. **Test**: Use QA specialist to validate functionality
+5. **Commit**: Use git committer to save changes
+
+### Tool Usage Guidelines
+
+- **gh_grep**: Search real-world code examples from GitHub
+- **context7**: Fetch up-to-date documentation for libraries
+- **exa**: General web searches and content extraction
+- **exa**: Search and get relevant code snippets, examples, and documentation from open source libraries, GitHub repositories, and programming frameworks.
+- **playwright**: UI testing (when applicable)
+- **webfetch**: Fetch web content
+- **web-search-prime**: Web searches
+
 ## Tech Stack
 
 - **Framework**: React 19 with TanStack Start
@@ -117,26 +152,7 @@ function PostsComponent() {
 
   return (
     <div className="p-2 flex gap-2">
-      <ul className="list-disc pl-4">
-        {[...posts, { id: 'i-do-not-exist', title: 'Non-existent Post' }].map(
-          (post) => {
-            return (
-              <li key={post.id} className="whitespace-nowrap">
-                <Link
-                  to="/posts/$postId"
-                  params={{
-                    postId: String(post.id),
-                  }}
-                  className="block py-1 text-blue-800 hover:text-blue-600"
-                  activeProps={{ className: 'text-black font-bold' }}
-                >
-                  <div>{post.title.substring(0, 20)}</div>
-                </Link>
-              </li>
-            )
-          },
-        )}
-      </ul>
+      ...
     </div>
   )
 }
