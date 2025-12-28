@@ -1,7 +1,7 @@
 # AI Models Explorer - Technical Specification Document
 
-**Version:** 1.3.0
-**Last Updated:** 2025-12-28
+**Version:** 2.0.0
+**Last Updated:** 2025-12-29
 **Status:** Draft
 **Project:** Models Explorer (models.dev alternative)
 
@@ -35,13 +35,13 @@ The platform aggregates AI model information from multiple providers into a sing
 
 This project leverages the full TanStack ecosystem for a cohesive, type-safe development experience:
 
-| Library              | Purpose                 | Benefits                                        |
-| -------------------- | ----------------------- | ----------------------------------------------- |
-| **TanStack Start**   | Full-stack framework    | SSR, server functions, file-based routing       |
-| **TanStack Router**  | Type-safe routing       | File-based routes, search params, middleware    |
-| **TanStack Query**   | Data fetching & caching | Built-in caching, background refetch, deduping  |
-| **TanStack Virtual** | Virtual scrolling       | Efficient rendering of large lists (500+ items) |
-| **TanStack Table**   | Data tables             | Headless UI for comparison tables               |
+| Library              | Purpose                 | Benefits                                               |
+| -------------------- | ----------------------- | ------------------------------------------------------ |
+| **TanStack Start**   | Full-stack framework    | SSR, server functions, file-based routing              |
+| **TanStack Router**  | Type-safe routing       | File-based routes, search params, middleware           |
+| **TanStack Query**   | Data fetching & caching | Built-in caching, background refetch, deduping         |
+| **TanStack Virtual** | Virtual scrolling       | Efficient rendering of large lists (500+ items)        |
+| **TanStack Table**   | Data tables             | Headless UI for main models list AND comparison tables |
 
 **Why the TanStack Ecosystem:**
 
@@ -51,7 +51,7 @@ This project leverages the full TanStack ecosystem for a cohesive, type-safe dev
 4. **Developer Experience:** Excellent DevTools, debugging, and monitoring
 5. **Community:** Active maintenance and large community support
 
-### 1.3 Success Metrics
+### 1.4 Success Metrics
 
 | Metric                         | Target          | Measurement Method |
 | ------------------------------ | --------------- | ------------------ |
@@ -133,7 +133,6 @@ This project leverages the full TanStack ecosystem for a cohesive, type-safe dev
    ┌──────────────────────────────────────────────┐
    │  Server-Side Data Transformation              │
    │  - Flatten nested provider/model structure   │
-   │  - Create search index (Fuse.js)             │
    │  - Return hydrated HTML with data            │
    └──────────────────────────────────────────────┘
         │
@@ -149,25 +148,33 @@ This project leverages the full TanStack ecosystem for a cohesive, type-safe dev
    ┌──────────────────────────────────────────────┐
    │  UI Update                                    │
    │  - Virtual list renders visible items         │
-   │  - Filters applied to computed dataset        │
-   │  - Search results highlighted                 │
+   │  - TanStack Table handles filtering/sorting  │
    └──────────────────────────────────────────────┘
 
-2. User Interaction:
+2. User Interaction with TanStack Table:
    ┌──────────┐     ┌──────────────┐     ┌─────────────────┐
-   │ Filter   │────▶│ URL Update   │────▶│ Router          │
-   │ Change   │     │ (pushState)  │     │ (history API)   │
+   │ Filter/  │────▶│ TanStack     │────▶│ URL Update      │
+   │ Sort     │     │ Table State  │     │ (pushState)     │
    └──────────┘     └──────────────┘     └─────────────────┘
-        │                                         │
-        │  Re-render                              │
-        │◀────────────────────────────────────────┘
+        │                                      │
+        │  TanStack Table                      │
+        │  handles filtering/sorting           │
+        │◀─────────────────────────────────────┘
         │
         ▼
    ┌──────────────────────────────────────────────┐
-   │  Computed Properties                          │
-   │  filteredModels = allModels.filter(filters)   │
-   │  sortedModels = filteredModels.sort(sort)     │
-   │  visibleModels = sortedModels.slice(0, 50)   │
+   │  Filter/Sort State                           │
+   │  - globalFilter (search)                     │
+   │  - columnFilters (column-specific filters)   │
+   │  - sorting (sort column + direction)         │
+   │  - columnVisibility (show/hide columns)      │
+   └──────────────────────────────────────────────┘
+        │
+        ▼
+   ┌──────────────────────────────────────────────┐
+   │  Virtualizer                                 │
+   │  - Renders only visible rows                 │
+   │  - Optimizes DOM for 500+ models             │
    └──────────────────────────────────────────────┘
 ```
 
@@ -252,18 +259,23 @@ export interface ModelsApiResponse {
           output: number
           cache_read?: number
           cache_write?: number
+          reasoning?: number
+          input_audio?: number
+          output_audio?: number
         }
         limit: {
           context: number
+          input?: number
           output: number
         }
+        structured_output?: boolean
       }
     }
   }
 }
 
-export const fetchModels = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const fetchModels = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const response = await fetch('https://models.dev/api.json', {
       headers: {
         Accept: 'application/json',
@@ -275,30 +287,25 @@ export const fetchModels = createServerFn({ method: 'GET' })
     }
 
     return response.json() as Promise<ModelsApiResponse>
-  })
+  },
+)
 ```
 
-**TanStack Query Configuration:**
+**Using Existing QueryClient:**
 
 ```typescript
-// src/lib/query-client.ts
-import { QueryClient } from '@tanstack/react-query'
+// src/routes/__root.tsx
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '@/integrations/tanstack-query/root-provider'
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // 24 hours - data remains fresh for a full day
-      staleTime: 24 * 60 * 60 * 1000,
-      // Keep unused data in memory for 24 hours
-      gcTime: 24 * 60 * 60 * 1000,
-      // Don't refetch when window regains focus
-      refetchOnWindowFocus: false,
-      // Retry failed requests 3 times with exponential backoff
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    },
-  },
-})
+// No need to create a new QueryClient - import and use the existing one
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {/* App content */}
+    </QueryClientProvider>
+  )
+}
 ```
 
 **Why TanStack Query's Built-in Caching is Sufficient:**
@@ -319,7 +326,7 @@ export const queryClient = new QueryClient({
 
 ### 3.2 Data Transformation
 
-The API returns nested provider/model structure. Flatten for easier processing:
+The API returns nested provider/model structure. Flatten for easier processing with TanStack Table:
 
 ```typescript
 // src/lib/models-transform.ts
@@ -349,6 +356,7 @@ export function flattenModelsData(response: ApiResponse): FlattenedModel[] {
         reasoning: model.reasoning,
         toolCall: model.tool_call,
         temperature: model.temperature,
+        structuredOutput: model.structured_output,
         // Dates
         knowledgeDate: model.knowledge,
         releaseDate: model.release_date,
@@ -364,10 +372,14 @@ export function flattenModelsData(response: ApiResponse): FlattenedModel[] {
           output: model.cost.output,
           cacheRead: model.cost.cache_read ?? null,
           cacheWrite: model.cost.cache_write ?? null,
+          reasoning: model.cost.reasoning ?? null,
+          audioInput: model.cost.input_audio ?? null,
+          audioOutput: model.cost.output_audio ?? null,
         },
         // Limits
         limits: {
           context: model.limit.context,
+          input: model.limit.input ?? null,
           output: model.limit.output,
         },
         // Metadata
@@ -385,432 +397,850 @@ export function flattenModelsData(response: ApiResponse): FlattenedModel[] {
 
 ### 3.3 Search Indexing
 
-Use Fuse.js for client-side fuzzy search across provider and model names:
+Use TanStack Table's built-in filtering instead of Fuse.js for simpler search:
 
 ```typescript
-// src/lib/models-search.ts
-import Fuse from 'fuse.js'
-import type { FlattenedModel } from '@/types/models'
+// TanStack Table handles search via globalFilter - no Fuse.js needed
+const [globalFilter, setGlobalFilter] = useState('')
 
-export interface SearchOptions {
-  keys: string[]
-  threshold: number
-  includeScore: boolean
-  includeMatches: boolean
-}
-
-export function createSearchIndex(models: FlattenedModel[]) {
-  const options: SearchOptions = {
-    keys: ['providerName', 'modelName'],
-    threshold: 0.3,
-    includeScore: true,
-    includeMatches: true,
-  }
-
-  return new Fuse(models, options)
-}
-
-export interface SearchResult {
-  item: FlattenedModel
-  score?: number
-  matches?: readonly Fuse.FuseResultMatch[]
-}
-
-export function searchModels(
-  fuse: Fuse<FlattenedModel>,
-  query: string,
-): SearchResult[] {
-  if (!query.trim()) {
-    return []
-  }
-
-  return fuse.search(query.trim(), {
-    limit: 100,
-  })
-}
+const table = useReactTable({
+  data: models,
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  state: {
+    globalFilter,
+  },
+  onGlobalFilterChange: setGlobalFilter,
+  // TanStack Table handles filtering automatically!
+})
 ```
 
 **Search Configuration:**
 
-- Keys: `['providerName', 'modelName']` only (no technical specs)
-- Threshold: 0.3 (balanced between precision and recall)
-- Limit: 100 results maximum
-- No fuzzy search across modalities, costs, or other attributes
+- Use TanStack Table's built-in `globalFilter` for text search
+- No fuzzy search - exact substring matching on all visible columns
+- Debounce search input to prevent excessive re-renders
 
 ### 3.4 State Management Approach
 
-**URL State (Authoritative):**
+This project uses **URL State as the authoritative source of truth** for all filter, search, and sort state. This approach provides several advantages over client-side state management libraries.
 
-- Search query
-- Provider filters
-- Capability filters
-- Cost range
-- Date range
-- Sort order and direction
-- Comparison list
+#### Approach A: URL State (Recommended for this project)
 
-**LocalStorage State (Persistence):**
+| State Type         | Storage Location | Format                        | Example                     |
+| ------------------ | ---------------- | ----------------------------- | --------------------------- |
+| Search query       | URL param        | `?search=gpt`                 | `?search=gpt-4`             |
+| Provider filters   | URL param        | `?providers=openai,anthropic` | `?providers=openai`         |
+| Capability filters | URL param        | `?reasoning=true`             | `?reasoning=true`           |
+| Sort order         | URL param        | `?sort=cost&order=desc`       | `?sort=modelName&order=asc` |
+| Column visibility  | URL param        | `?cols=provider,model`        | `?cols=provider,model,cost` |
 
-- Last applied filters (for restoration)
-- Bookmarked models
-- Theme preference
+**Benefits of URL State:**
 
-**Component State (Transient):**
+- **Shareable:** Users can share URLs with filters applied
+- **Browser history:** Back/forward navigation preserves filter state
+- **No sync issues:** Single source of truth for all state
+- **SEO friendly:** Search engines can index filtered views
+- **No localStorage needed:** Works incognito/private browsing
 
-- Modal open/close states
-- Loading states
-- Error states
-- UI interactions (hover, focus)
+**Implementation:**
+
+```typescript
+// src/lib/url-state.ts
+import { createSearchParams, useSearch } from '@tanstack/react-router'
+
+interface UrlState {
+  search: string
+  providers: string[]
+  reasoning: boolean | undefined
+  toolCall: boolean | undefined
+  sort: string
+  order: 'asc' | 'desc'
+  cols: string[]
+}
+
+function stateToSearchParams(state: Partial<UrlState>): URLSearchParams {
+  const params = new URLSearchParams()
+
+  if (state.search) params.set('search', state.search)
+  if (state.providers?.length)
+    params.set('providers', state.providers.join(','))
+  if (state.reasoning !== undefined)
+    params.set('reasoning', String(state.reasoning))
+  if (state.toolCall !== undefined)
+    params.set('toolCall', String(state.toolCall))
+  if (state.sort) params.set('sort', state.sort)
+  if (state.order) params.set('order', state.order)
+  if (state.cols?.length) params.set('cols', state.cols.join(','))
+
+  return params
+}
+
+function searchParamsToState(params: URLSearchParams): Partial<UrlState> {
+  return {
+    search: params.get('search') || '',
+    providers: params.get('providers')?.split(',').filter(Boolean) || [],
+    reasoning: params.has('reasoning')
+      ? params.get('reasoning') === 'true'
+      : undefined,
+    toolCall: params.has('toolCall')
+      ? params.get('toolCall') === 'true'
+      : undefined,
+    sort: params.get('sort') || '',
+    order: (params.get('order') as 'asc' | 'desc') || 'asc',
+    cols: params.get('cols')?.split(',').filter(Boolean) || [],
+  }
+}
+```
+
+#### Approach B: TanStack Query for State (Not Recommended)
+
+Some developers consider using TanStack Query or React state for UI state:
+
+| State Type   | Storage Location | Implementation                               |
+| ------------ | ---------------- | -------------------------------------------- |
+| Server state | TanStack Query   | `useQuery({ queryKey: ['models'] })`         |
+| UI state     | useState         | `const [filters, setFilters] = useState()`   |
+| Persistence  | localStorage     | `useEffect(() => localStorage.setItem(...))` |
+
+**Why This Approach Is NOT Recommended:**
+
+1. **URL state is more shareable:** Users can share filtered URLs with others
+2. **TanStack Query is for server state:** Optimized for async server data, not UI state
+3. **No native browser navigation:** localStorage + React state doesn't support back/forward
+4. **Sync complexity:** Need to keep localStorage in sync with UI state
+5. **Incognito issues:** localStorage doesn't work in private browsing
+
+#### RECOMMENDATION: Use URL State
+
+This project uses **Approach A (URL State)** for all filter, search, and sort state. localStorage is only used for:
+
+- **Bookmarks:** User-saved model comparisons
+- **Preferences:** UI preferences (theme, density)
+- **Default column visibility:** Initial column state
+
+```typescript
+// State hierarchy for this project
+interface StateHierarchy {
+  // Authoritative state (URL)
+  url: {
+    search: string
+    providers: string[]
+    capabilities: { reasoning?: boolean; toolCall?: boolean }
+    sort: { field: string; direction: 'asc' | 'desc' }
+    columnVisibility: Record<string, boolean>
+  }
+
+  // Persistence (localStorage)
+  localStorage: {
+    bookmarks: string[]
+    theme: 'light' | 'dark'
+    defaultColumns: Record<string, boolean>
+  }
+
+  // Component state (ephemeral)
+  component: {
+    modalOpen: boolean
+    loading: boolean
+    error: Error | null
+  }
+}
+```
 
 ---
 
 ## 4. Core Features Specifications
 
-### 4.1 Virtual Model List
+### 4.1 Table with TanStack Table + All 27 Columns
 
-**Implementation with TanStack Virtual:**
+**Implementation with TanStack Table and TanStack Virtual:**
+
+The models list uses `@tanstack/react-table` for table structure and column management, combined with `@tanstack/react-virtual`'s `rowVirtualizer` for efficient rendering of 500+ rows. All 27 columns from models.dev are implemented with full filtering and sorting support.
 
 ```typescript
 // src/components/ModelList/ModelList.tsx
+import { useState, useMemo, useRef, useCallback } from 'react'
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  ColumnDef,
+  flexRender,
+} from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useMemo, useRef } from 'react'
 import type { FlattenedModel } from '@/types/models'
-import { ModelCard } from './ModelCard'
+import { Checkbox } from '@/components/Shared/Checkbox'
+import { ProviderLogo } from './ProviderLogo'
+import { ModelIdCopy } from './ModelIdCopy'
+import { ModalityIcon } from './ModalityIcon'
+
+// ALL 27 COLUMNS DEFINITION
+export const modelColumns: ColumnDef<FlattenedModel>[] = [
+  // 1. Select (checkbox for comparison)
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onChange={table.getToggleAllPageRowsSelectedHandler()}
+        aria-label="Select all models"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onChange={row.getToggleSelectedHandler()}
+        aria-label={`Select ${row.original.modelName}`}
+      />
+    ),
+    enableSorting: false,
+    enableColumnFilter: false,
+    size: 48,
+  },
+
+  // 2. Provider (logo + name)
+  {
+    accessorKey: 'providerName',
+    header: 'Provider',
+    cell: ({ getValue, row }) => (
+      <div className="flex items-center gap-2">
+        <ProviderLogo providerId={row.original.providerId} />
+        <span>{getValue() as string}</span>
+      </div>
+    ),
+    size: 180,
+  },
+
+  // 3. Model
+  {
+    accessorKey: 'modelName',
+    header: 'Model',
+    cell: ({ getValue }) => (
+      <span className="font-medium">{getValue() as string}</span>
+    ),
+    size: 200,
+  },
+
+  // 4. Family
+  {
+    accessorKey: 'family',
+    header: 'Family',
+    cell: ({ getValue }) => (
+      <span className="font-mono text-sm">{getValue() as string}</span>
+    ),
+    size: 120,
+  },
+
+  // 5. Provider ID
+  {
+    accessorKey: 'providerId',
+    header: 'Provider ID',
+    cell: ({ getValue }) => (
+      <span className="font-mono text-sm">{getValue() as string}</span>
+    ),
+    size: 120,
+  },
+
+  // 6. Model ID (with copy button)
+  {
+    accessorKey: 'modelId',
+    header: 'Model ID',
+    cell: ({ getValue, row }) => (
+      <ModelIdCopy id={getValue() as string} />
+    ),
+    size: 200,
+  },
+
+  // 7. Tool Call
+  {
+    accessorKey: 'toolCall',
+    header: 'Tool Call',
+    filterFn: 'equals',
+    cell: ({ getValue }) => (getValue() ? 'Yes' : 'No'),
+    size: 100,
+  },
+
+  // 8. Reasoning
+  {
+    accessorKey: 'reasoning',
+    header: 'Reasoning',
+    filterFn: 'equals',
+    cell: ({ getValue }) => (getValue() ? 'Yes' : 'No'),
+    size: 100,
+  },
+
+  // 9. Input (modalities with icons)
+  {
+    accessorKey: 'inputModalities',
+    header: 'Input',
+    cell: ({ getValue }) => (
+      <div className="flex gap-1">
+        {(getValue() as string[]).map((modality) => (
+          <ModalityIcon key={modality} type={modality} />
+        ))}
+      </div>
+    ),
+    size: 120,
+  },
+
+  // 10. Output (modalities with icons)
+  {
+    accessorKey: 'outputModalities',
+    header: 'Output',
+    cell: ({ getValue }) => (
+      <div className="flex gap-1">
+        {(getValue() as string[]).map((modality) => (
+          <ModalityIcon key={modality} type={modality} />
+        ))}
+      </div>
+    ),
+    size: 120,
+  },
+
+  // 11. Input Cost
+  {
+    accessorKey: 'cost.input',
+    header: 'Input Cost',
+    cell: ({ getValue }) => `$${(getValue() as number).toFixed(2)}`,
+    size: 100,
+  },
+
+  // 12. Output Cost
+  {
+    accessorKey: 'cost.output',
+    header: 'Output Cost',
+    cell: ({ getValue }) => `$${(getValue() as number).toFixed(2)}`,
+    size: 100,
+  },
+
+  // 13. Reasoning Cost
+  {
+    accessorKey: 'cost.reasoning',
+    header: 'Reasoning Cost',
+    cell: ({ getValue }) =>
+      getValue() ? `$${(getValue() as number).toFixed(2)}` : '-',
+    size: 120,
+  },
+
+  // 14. Cache Read Cost
+  {
+    accessorKey: 'cost.cacheRead',
+    header: 'Cache Read Cost',
+    cell: ({ getValue }) =>
+      getValue() ? `$${(getValue() as number).toFixed(2)}` : '-',
+    size: 120,
+  },
+
+  // 15. Cache Write Cost
+  {
+    accessorKey: 'cost.cacheWrite',
+    header: 'Cache Write Cost',
+    cell: ({ getValue }) =>
+      getValue() ? `$${(getValue() as number).toFixed(2)}` : '-',
+    size: 120,
+  },
+
+  // 16. Audio Input Cost
+  {
+    accessorKey: 'cost.audioInput',
+    header: 'Audio Input Cost',
+    cell: ({ getValue }) =>
+      getValue() ? `$${(getValue() as number).toFixed(2)}` : '-',
+    size: 120,
+  },
+
+  // 17. Audio Output Cost
+  {
+    accessorKey: 'cost.audioOutput',
+    header: 'Audio Output Cost',
+    cell: ({ getValue }) =>
+      getValue() ? `$${(getValue() as number).toFixed(2)}` : '-',
+    size: 120,
+  },
+
+  // 18. Context Limit
+  {
+    accessorKey: 'limits.context',
+    header: 'Context Limit',
+    cell: ({ getValue }) =>
+      (getValue() as number).toLocaleString(),
+    size: 120,
+  },
+
+  // 19. Input Limit
+  {
+    accessorKey: 'limits.input',
+    header: 'Input Limit',
+    cell: ({ getValue }) =>
+      getValue() ? (getValue() as number).toLocaleString() : '-',
+    size: 120,
+  },
+
+  // 20. Output Limit
+  {
+    accessorKey: 'limits.output',
+    header: 'Output Limit',
+    cell: ({ getValue }) =>
+      (getValue() as number).toLocaleString(),
+    size: 120,
+  },
+
+  // 21. Structured Output
+  {
+    accessorKey: 'structuredOutput',
+    header: 'Structured Output',
+    filterFn: 'equals',
+    cell: ({ getValue }) => (getValue() ? 'Yes' : 'No'),
+    size: 140,
+  },
+
+  // 22. Temperature
+  {
+    accessorKey: 'temperature',
+    header: 'Temperature',
+    filterFn: 'equals',
+    cell: ({ getValue }) => (getValue() ? 'Yes' : 'No'),
+    size: 100,
+  },
+
+  // 23. Weights
+  {
+    accessorKey: 'openWeights',
+    header: 'Weights',
+    cell: ({ getValue }) => (getValue() ? 'Open' : 'Closed'),
+    size: 100,
+  },
+
+  // 24. Knowledge
+  {
+    accessorKey: 'knowledgeDate',
+    header: 'Knowledge',
+    cell: ({ getValue }) =>
+      getValue() ? (getValue() as string).substring(0, 7) : '-',
+    size: 100,
+  },
+
+  // 25. Release Date
+  {
+    accessorKey: 'releaseDate',
+    header: 'Release Date',
+    cell: ({ getValue }) => (getValue() as string),
+    size: 120,
+  },
+
+  // 26. Last Updated
+  {
+    accessorKey: 'lastUpdated',
+    header: 'Last Updated',
+    cell: ({ getValue }) => (getValue() as string),
+    size: 120,
+  },
+]
 
 interface ModelListProps {
   models: FlattenedModel[]
   onModelSelect: (model: FlattenedModel) => void
-  selectedModels: string[]
+  selectedIds: string[]
+  isLoading: boolean
+  error: Error | null
 }
 
-export function ModelList({ models, onModelSelect, selectedModels }: ModelListProps) {
+export function ModelList({
+  models,
+  onModelSelect,
+  selectedIds,
+  isLoading,
+  error,
+}: ModelListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
+  const [globalFilter, setGlobalFilter] = useState('')
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
-  const rowVirtualizer = useVirtualizer({
-    count: models.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 280, // Card height estimate
-    overscan: 5,
+  // Transform selectedIds to rowSelection for TanStack Table
+  const rowSelection = useMemo(() => {
+    const selection: Record<string, boolean> = {}
+    selectedIds.forEach((id) => {
+      const modelIndex = models.findIndex((m) => m.id === id)
+      if (modelIndex >= 0) {
+        selection[modelIndex] = true
+      }
+    })
+    return selection
+  }, [selectedIds, models])
+
+  const table = useReactTable({
+    data: models,
+    columns: modelColumns,
+    state: {
+      globalFilter,
+      columnFilters,
+      sorting,
+      columnVisibility,
+      rowSelection,
+    },
+    enableRowSelection: true,
+    onGlobalFilterChange: setGlobalFilter,
+    onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: (updater) => {
+      const newSelection = updater(rowSelection)
+      Object.entries(newSelection).forEach(([index, selected]) => {
+        if (selected && models[parseInt(index)]) {
+          onModelSelect(models[parseInt(index)])
+        }
+      })
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   })
 
+  // Row virtualizer for performance with 500+ rows
+  const rowVirtualizer = useVirtualizer({
+    count: table.getRowModel().rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 48,
+    overscan: 10,
+  })
+
+  if (isLoading) {
+    return <SkeletonList count={10} />
+  }
+
+  if (error) {
+    return <ErrorState error={error} onRetry={() => window.location.reload()} />
+  }
+
+  if (models.length === 0) {
+    return <EmptyState message="No models found matching your criteria" />
+  }
+
   return (
-    <div
-      ref={parentRef}
-      className="h-full overflow-auto container-padding"
-      style={{ height: 'calc(100vh - 200px)' }}
-    >
+    <div className="flex flex-col h-full">
+      <div className="flex justify-end p-2">
+        <ColumnVisibilityToggle
+          table={table}
+          onVisibilityChange={setColumnVisibility}
+        />
+      </div>
+
+      <SearchBar
+        value={globalFilter}
+        onChange={setGlobalFilter}
+        placeholder="Search models..."
+      />
+
       <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
+        ref={parentRef}
+        className="flex-1 overflow-auto"
+        style={{ height: 'calc(100vh - 280px)' }}
       >
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-          const model = models[virtualRow.index]
-          return (
-            <div
-              key={virtualRow.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              <ModelCard
-                model={model}
-                isSelected={selectedModels.includes(model.id)}
-                onSelect={() => onModelSelect(model)}
-              />
-            </div>
-          )
-        })}
+        <table className="w-full border-collapse">
+          <thead className="sticky top-0 bg-gray-50 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 cursor-pointer hover:bg-gray-100"
+                    style={{ width: header.getSize() }}
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    <div className="flex items-center gap-2">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                      {{
+                        asc: ' ↑',
+                        desc: ' ↓',
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const row = table.getRowModel().rows[virtualRow.index]
+              return (
+                <tr
+                  key={row.id}
+                  className={`hover:bg-gray-50 ${
+                    row.getIsSelected() ? 'bg-blue-50' : ''
+                  }`}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="px-4 py-3 text-sm text-gray-900 border-b border-gray-100"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        />
       </div>
     </div>
   )
 }
+```
+
+**Search Integration with TanStack Table:**
+
+```typescript
+// Search is handled via TanStack Table's built-in globalFilter
+const [globalFilter, setGlobalFilter] = useState('')
+
+const table = useReactTable({
+  data: models,
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  state: {
+    globalFilter,
+  },
+  onGlobalFilterChange: setGlobalFilter,
+  // TanStack Table handles filtering automatically!
+})
+```
+
+**Filter Integration with TanStack Table:**
+
+```typescript
+// Column filters are handled via TanStack Table's built-in columnFilters
+const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+const table = useReactTable({
+  data: models,
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  state: {
+    columnFilters,
+  },
+  onColumnFiltersChange: setColumnFilters,
+  // TanStack Table handles column filters automatically!
+})
 ```
 
 **Performance Considerations:**
 
-1. **Virtualization:** Only render visible items + buffer (5 items overscan)
-2. **Card Height:** Fixed height cards (280px) for predictable calculations
-3. **Windowing:** Use `useVirtualizer` from `@tanstack/react-virtual`
-4. **Memoization:** Memoize expensive computations with `useMemo`
-5. **Image Loading:** Lazy load model icons and provider logos
+1. **Virtualization:** Only render visible rows + buffer (10 rows overscan)
+2. **Row Height:** Fixed-height rows (48px) for predictable calculations
+3. **Table Structure:** Use TanStack Table for thead, tbody, th, td structure
+4. **Row Virtualizer:** Use `useVirtualizer` from `@tanstack/react-virtual` with row count
+5. **Memoization:** Memoize column definitions and expensive computations
 
-**Card Component Structure:**
+**Column Definitions (All 27):**
+
+| #   | Column            | Key              | Sortable | Filterable | Default Visible |
+| --- | ----------------- | ---------------- | -------- | ---------- | --------------- |
+| 1   | Select            | select           | No       | No         | Yes             |
+| 2   | Provider          | providerName     | Yes      | Yes        | Yes             |
+| 3   | Model             | modelName        | Yes      | Yes        | Yes             |
+| 4   | Family            | family           | Yes      | No         | No              |
+| 5   | Provider ID       | providerId       | Yes      | No         | No              |
+| 6   | Model ID          | modelId          | Yes      | No         | No              |
+| 7   | Tool Call         | toolCall         | Yes      | Yes        | Yes             |
+| 8   | Reasoning         | reasoning        | Yes      | Yes        | No              |
+| 9   | Input             | inputModalities  | Yes      | No         | No              |
+| 10  | Output            | outputModalities | Yes      | No         | No              |
+| 11  | Input Cost        | cost.input       | Yes      | No         | Yes             |
+| 12  | Output Cost       | cost.output      | Yes      | No         | No              |
+| 13  | Reasoning Cost    | cost.reasoning   | Yes      | No         | No              |
+| 14  | Cache Read Cost   | cost.cacheRead   | Yes      | No         | No              |
+| 15  | Cache Write Cost  | cost.cacheWrite  | Yes      | No         | No              |
+| 16  | Audio Input Cost  | cost.audioInput  | Yes      | No         | No              |
+| 17  | Audio Output Cost | cost.audioOutput | Yes      | No         | No              |
+| 18  | Context Limit     | limits.context   | Yes      | No         | Yes             |
+| 19  | Input Limit       | limits.input     | Yes      | No         | No              |
+| 20  | Output Limit      | limits.output    | Yes      | No         | No              |
+| 21  | Structured Output | structuredOutput | Yes      | Yes        | No              |
+| 22  | Temperature       | temperature      | Yes      | Yes        | No              |
+| 23  | Weights           | openWeights      | Yes      | No         | No              |
+| 24  | Knowledge         | knowledgeDate    | Yes      | No         | No              |
+| 25  | Release Date      | releaseDate      | Yes      | No         | No              |
+| 26  | Last Updated      | lastUpdated      | Yes      | No         | No              |
+
+**Virtual Table vs Card List Decision:**
+
+- **Virtual Table** is preferred for this use case because:
+  - All data is loaded upfront (no pagination from API)
+  - Tabular data is easier to scan and compare
+  - Built-in column sorting and visibility features
+  - Better keyboard navigation for accessibility
+  - Consistent row height simplifies virtualization
+
+### 4.2 Filtering with TanStack Table
+
+TanStack Table provides built-in filtering capabilities that handle filtering logic automatically. Instead of manual filter functions, we use TanStack Table's `filterFn` system.
+
+**Filter Integration:**
 
 ```typescript
-// src/components/ModelList/ModelCard.tsx
-interface ModelCardProps {
-  model: FlattenedModel
-  isSelected: boolean
-  onSelect: () => void
+// TanStack Table handles filtering automatically via columnFilters state
+const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+const table = useReactTable({
+  data: models,
+  columns: modelColumns,
+  getCoreRowModel: getCoreRowModel(),
+  state: {
+    columnFilters,
+  },
+  onColumnFiltersChange: setColumnFilters,
+})
+```
+
+**Custom Filter Functions:**
+
+TanStack Table supports various built-in filter functions:
+
+```typescript
+// Column definitions with custom filter functions
+{
+  accessorKey: 'toolCall',
+  header: 'Tool Call',
+  filterFn: 'equals', // Boolean equality check
 }
 
-export function ModelCard({ model, isSelected, onSelect }: ModelCardProps) {
+{
+  accessorKey: 'cost.input',
+  header: 'Input Cost',
+  filterFn: 'inNumberRange', // Range filtering
+}
+
+{
+  accessorKey: 'providerName',
+  header: 'Provider',
+  filterFn: 'includesString', // Substring matching
+}
+```
+
+**Filter UI Components:**
+
+The filter UI updates URL state which is then synced to TanStack Table:
+
+```typescript
+// src/components/FilterPanel/FilterPanel.tsx
+import { useSearch, useRouter } from '@tanstack/react-router'
+import type { FilterState } from '@/types/models'
+
+interface FilterPanelProps {
+  providers: { id: string; name: string }[]
+}
+
+export function FilterPanel({ providers }: FilterPanelProps) {
+  const search = useSearch()
+  const router = useRouter()
+
+  const updateFilters = (newFilters: Partial<FilterState>) => {
+    router.navigate({
+      search: (prev) => ({
+        ...prev,
+        ...newFilters,
+      }),
+    })
+  }
+
   return (
-    <div className={styles.card}>
-      <div className={styles.header}>
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={onSelect}
-          aria-label={`Select ${model.modelName} for comparison`}
-        />
-        <img
-          src={`/logos/${model.providerId}.png`}
-          alt=""
-          loading="lazy"
-          className={styles.providerLogo}
-        />
-        <div className={styles.modelInfo}>
-          <h3 className={styles.modelName}>{model.modelName}</h3>
-          <span className={styles.providerName}>{model.providerName}</span>
-        </div>
-      </div>
+    <aside className="filter-panel">
+      <ProviderFilter
+        providers={providers}
+        selected={search.providers || []}
+        onChange={(providers) => updateFilters({ providers })}
+      />
 
-      <div className={styles.capabilities}>
-        {model.reasoning && <Badge variant="reasoning">Reasoning</Badge>}
-        {model.toolCall && <Badge variant="tool">Tools</Badge>}
-        {model.openWeights && <Badge variant="open">Open Weights</Badge>}
-      </div>
-
-      <div className={styles.cost}>
-        <CostDisplay cost={model.cost} />
-      </div>
-
-      <div className={styles.modalities}>
-        {model.inputModalities.map((m) => (
-          <Badge key={m} variant="modality">{m}</Badge>
-        ))}
-      </div>
-
-      <Link to="/models/$modelId" params={{ modelId: model.id }} className={styles.detailsLink}>
-        View Details
-      </Link>
-    </div>
+      <CapabilityFilter
+        capabilities={{
+          reasoning: search.reasoning,
+          toolCall: search.toolCall,
+        }}
+        onChange={(capabilities) => updateFilters(capabilities)}
+      />
+    </aside>
   )
 }
 ```
 
-**Infinite Scroll vs Virtual List Decision:**
+**Available Filter Functions in TanStack Table:**
 
-- **Virtual List** is preferred for this use case because:
-  - All data is loaded upfront (no pagination from API)
-  - Predictable item heights simplify implementation
-  - Better performance for filtering (re-filtering existing data)
-  - Smoother scroll experience with fixed item heights
+| Filter Fn        | Type   | Description                      |
+| ---------------- | ------ | -------------------------------- |
+| `equals`         | any    | Exact equality                   |
+| `equalsString`   | string | Case-insensitive string equality |
+| `includesString` | string | Substring inclusion              |
+| `inNumberRange`  | number | Number within range              |
+| `inDateRange`    | date   | Date within range                |
+| `arrIncludes`    | array  | Array contains value             |
 
-### 4.2 Advanced Filtering System
+**URL State for Filters:**
 
-**Filter Types:**
+All filter state is persisted in URL for shareability:
 
-| Filter       | Type         | UI Component   | Options                          |
-| ------------ | ------------ | -------------- | -------------------------------- |
-| Provider     | Multi-select | Checkbox list  | Dynamic (from data)              |
-| Capabilities | Multi-select | Toggle buttons | reasoning, toolCall, openWeights |
-| Cost Range   | Range        | Dual slider    | 0 - $100+/M tokens               |
-| Date Range   | Range        | Date picker    | Release date range               |
-| Modalities   | Multi-select | Checkbox list  | input/output types               |
-| Open Weights | Boolean      | Toggle         | Yes/No                           |
-
-**Filter State Interface:**
-
-```typescript
-// src/types/models.ts
-export interface FilterState {
-  providers: string[]
-  capabilities: {
-    reasoning: boolean | null
-    toolCall: boolean | null
-    openWeights: boolean | null
-  }
-  costRange: {
-    min: number
-    max: number | null // null = unlimited
-  }
-  dateRange: {
-    start: string | null // YYYY-MM format
-    end: string | null
-  }
-  modalities: {
-    input: string[]
-    output: string[]
-  }
-}
-
-export const defaultFilters: FilterState = {
-  providers: [],
-  capabilities: {
-    reasoning: null,
-    toolCall: null,
-    openWeights: null,
-  },
-  costRange: {
-    min: 0,
-    max: null,
-  },
-  dateRange: {
-    start: null,
-    end: null,
-  },
-  modalities: {
-    input: [],
-    output: [],
-  },
-}
 ```
-
-**Filter Logic Implementation:**
-
-```typescript
-// src/lib/models-filters.ts
-import type { FlattenedModel, FilterState } from '@/types/models'
-
-export function applyFilters(
-  models: FlattenedModel[],
-  filters: FilterState,
-): FlattenedModel[] {
-  return models.filter((model) => {
-    // Provider filter
-    if (
-      filters.providers.length > 0 &&
-      !filters.providers.includes(model.providerId)
-    ) {
-      return false
-    }
-
-    // Capability filters
-    if (filters.capabilities.reasoning === true && !model.reasoning) {
-      return false
-    }
-    if (filters.capabilities.toolCall === true && !model.toolCall) {
-      return false
-    }
-    if (filters.capabilities.openWeights === true && !model.openWeights) {
-      return false
-    }
-
-    // Cost filter
-    const totalCost = model.cost.input + model.cost.output
-    if (filters.costRange.min > 0 && totalCost < filters.costRange.min) {
-      return false
-    }
-    if (filters.costRange.max !== null && totalCost > filters.costRange.max) {
-      return false
-    }
-
-    // Date filter
-    if (
-      filters.dateRange.start &&
-      model.releaseDate < filters.dateRange.start
-    ) {
-      return false
-    }
-    if (filters.dateRange.end && model.releaseDate > filters.dateRange.end) {
-      return false
-    }
-
-    // Modalities filter
-    if (filters.modalities.input.length > 0) {
-      const hasInput = filters.modalities.input.some((m) =>
-        model.inputModalities.includes(m),
-      )
-      if (!hasInput) return false
-    }
-    if (filters.modalities.output.length > 0) {
-      const hasOutput = filters.modalities.output.some((m) =>
-        model.outputModalities.includes(m),
-      )
-      if (!hasOutput) return false
-    }
-
-    return true
-  })
-}
-```
-
-**URL State Synchronization:**
-
-```typescript
-// src/lib/url-state.ts
-import { createSearchParams } from '@tanstack/react-router'
-import type { FilterState } from '@/types/models'
-
-export function filtersToSearchParams(filters: FilterState): URLSearchParams {
-  const params = new URLSearchParams()
-
-  if (filters.providers.length > 0) {
-    params.set('providers', filters.providers.join(','))
-  }
-
-  if (filters.capabilities.reasoning !== null) {
-    params.set('reasoning', String(filters.capabilities.reasoning))
-  }
-
-  if (filters.costRange.max !== null) {
-    params.set('maxCost', String(filters.costRange.max))
-  }
-
-  if (filters.dateRange.start) {
-    params.set('dateFrom', filters.dateRange.start)
-  }
-
-  return params
-}
-
-export function searchParamsToFilters(
-  params: URLSearchParams,
-): Partial<FilterState> {
-  const providers = params.get('providers')?.split(',').filter(Boolean) ?? []
-
-  const reasoning = params.get('reasoning')
-  const maxCost = params.get('maxCost')
-  const dateFrom = params.get('dateFrom')
-
-  return {
-    providers,
-    capabilities: {
-      reasoning: reasoning === null ? null : reasoning === 'true',
-      toolCall: null,
-      openWeights: null,
-    },
-    costRange: {
-      min: 0,
-      max: maxCost ? Number(maxCost) : null,
-    },
-    dateRange: {
-      start: dateFrom ?? null,
-      end: null,
-    },
-    modalities: { input: [], output: [] },
-  }
-}
+?providers=openai,anthropic
+&reasoning=true
+&toolCall=false
+&sort=cost.input
+&order=asc
 ```
 
 ### 4.3 Search System
 
-**Search Input with Debouncing:**
+**Search with TanStack Table's globalFilter:**
+
+TanStack Table provides built-in global filtering that automatically searches across all columns. This replaces the need for Fuse.js fuzzy search with simpler, more efficient filtering.
 
 ```typescript
 // src/components/SearchBar/SearchBar.tsx
 import { useDebounce } from '@/lib/hooks/useDebounce'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
+import { useSearch, useRouter } from '@tanstack/react-router'
 
 interface SearchBarProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  className?: string
 }
 
-export function SearchBar({ value, onChange, placeholder = 'Search models...' }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChange,
+  placeholder = 'Search models and providers...',
+  className,
+}: SearchBarProps) {
   const [inputValue, setInputValue] = useState(value)
   const debouncedValue = useDebounce(inputValue, 300)
+  const router = useRouter()
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
@@ -823,27 +1253,64 @@ export function SearchBar({ value, onChange, placeholder = 'Search models...' }:
     }
   }, [debouncedValue, onChange, value])
 
+  // Sync to URL
+  useEffect(() => {
+    router.navigate({
+      search: (prev) => {
+        if (debouncedValue) {
+          prev.set('search', debouncedValue)
+        } else {
+          prev.delete('search')
+        }
+        return prev
+      },
+    })
+  }, [debouncedValue, router])
+
+  const handleClear = useCallback(() => {
+    setInputValue('')
+    onChange('')
+  }, [onChange])
+
   return (
-    <div className={styles.searchContainer}>
+    <div className={`relative ${className ?? ''}`}>
+      <svg
+        className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+
       <input
         type="search"
         value={inputValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className={styles.searchInput}
+        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         aria-label="Search models and providers"
         autoComplete="off"
       />
+
       {inputValue && (
         <button
-          onClick={() => {
-            setInputValue('')
-            onChange('')
-          }}
-          className={styles.clearButton}
+          onClick={handleClear}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           aria-label="Clear search"
         >
-          ×
+          <svg
+            className="w-5 h-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       )}
     </div>
@@ -851,81 +1318,53 @@ export function SearchBar({ value, onChange, placeholder = 'Search models...' }:
 }
 ```
 
-**Search Scope:**
-
-The search system only searches across:
-
-- `model.modelName` - Display name of the model
-- `model.providerName` - Name of the provider
-
-No search across:
-
-- Technical specifications
-- Capability flags
-- Cost information
-- Modalities
-- Release dates
-
-**Search Results Highlighting:**
+**TanStack Table Integration:**
 
 ```typescript
-// src/components/SearchBar/SearchHighlight.tsx
-import type { FuseMatch } from 'fuse.js'
+// Search is handled via TanStack Table's built-in globalFilter
+const [globalFilter, setGlobalFilter] = useState('')
 
-interface SearchHighlightProps {
-  text: string
-  matches: FuseMatch[]
-}
-
-export function SearchHighlight({ text, matches }: SearchHighlightProps) {
-  if (!matches.length) return <>{text}</>
-
-  // Build highlight spans from match indices
-  const ranges: [number, number][] = []
-
-  for (const match of matches) {
-    if (match.key === 'modelName' || match.key === 'providerName') {
-      for (const indices of match.indices) {
-        ranges.push(indices)
-      }
-    }
-  }
-
-  // Sort and merge overlapping ranges
-  const sortedRanges = ranges.sort((a, b) => a[0] - b[0])
-  const mergedRanges = sortedRanges.reduce<[number, number][]>((acc, curr) => {
-    if (acc.length === 0) return [curr]
-    const last = acc[acc.length - 1]
-    if (curr[0] <= last[1]) {
-      acc[acc.length - 1] = [last[0], Math.max(last[1], curr[1])]
-      return acc
-    }
-    return [...acc, curr]
-  }, [])
-
-  // Build JSX with highlighted segments
-  let lastIndex = 0
-  const elements: JSX.Element[] = []
-
-  for (const [start, end] of mergedRanges) {
-    if (start > lastIndex) {
-      elements.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex, start)}</span>)
-    }
-    elements.push(
-      <span key={`highlight-${start}`} className={styles.highlight}>
-        {text.slice(start, end + 1)}
-      </span>
-    )
-    lastIndex = end + 1
-  }
-
-  if (lastIndex < text.length) {
-    elements.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex)}</span>)
-  }
-
-  return <>{elements}</>
-}
+const table = useReactTable({
+  data: models,
+  columns,
+  getCoreRowModel: getCoreRowModel(),
+  state: {
+    globalFilter,
+  },
+  onGlobalFilterChange: setGlobalFilter,
+  // TanStack Table handles filtering automatically!
+})
 ```
+
+**Search Scope:**
+
+With TanStack Table's globalFilter, the search automatically includes all visible columns. This means users can search across:
+
+- `modelName` - Display name of the model
+- `providerName` - Name of the provider
+- `family` - Model family
+- `providerId` - Provider identifier
+- `modelId` - Model identifier
+- And any other text-based columns
+
+**No Search Across:**
+
+- Boolean values (Yes/No columns)
+- Cost values (numeric columns)
+- Date columns
+- Internal IDs (unless text-based)
+
+**URL State for Search:**
+
+Search state is persisted in URL for shareability:
+
+```
+?search=gpt-4
+```
+
+**Debouncing:**
+
+Search input is debounced (300ms) to prevent excessive re-renders while the user types. This ensures the table only updates after the user pauses their input.
 
 ### 4.4 Comparison Mode
 
@@ -1181,6 +1620,274 @@ For Phase 4 or later, consider implementing multi-sort with:
 - Visual sort indicators (multiple arrows)
 - Keyboard shortcuts (Shift+Click for secondary sort)
 
+### 4.6 Column Visibility Management
+
+The column visibility feature allows users to show/hide table columns based on their preferences. Column visibility state is synced with URL for shareability and persisted to localStorage for session persistence.
+
+**Default Visible Columns (6 columns):**
+
+| Column        | Key            | Reason                            |
+| ------------- | -------------- | --------------------------------- |
+| Select        | select         | Core functionality for comparison |
+| Provider      | providerName   | Important for filtering by source |
+| Model         | modelName      | Primary identification            |
+| Tool Call     | toolCall       | Key capability                    |
+| Input Cost    | cost.input     | Key comparison metric             |
+| Context Limit | limits.context | Key specification                 |
+
+**URL State for Column Visibility:**
+
+Column visibility is synced with URL `?cols=provider,model,tool-call`:
+
+```typescript
+// src/lib/url-state.ts
+export function getColumnVisibilityFromUrl(
+  params: URLSearchParams,
+): Record<string, boolean> {
+  const colsParam = params.get('cols')
+  const defaultVisible = [
+    'select',
+    'providerName',
+    'modelName',
+    'toolCall',
+    'cost.input',
+    'limits.context',
+  ]
+
+  if (!colsParam) {
+    // Return defaults
+    return Object.fromEntries(
+      modelColumns.map((col) => [
+        col.id || String(col.accessorKey),
+        defaultVisible.includes(col.id || String(col.accessorKey)),
+      ]),
+    )
+  }
+
+  const visibleCols = colsParam.split(',')
+  return Object.fromEntries(
+    modelColumns.map((col) => [
+      col.id || String(col.accessorKey),
+      visibleCols.includes(col.id || String(col.accessorKey)),
+    ]),
+  )
+}
+
+export function getUrlFromColumnVisibility(
+  visibility: Record<string, boolean>,
+): string {
+  const visibleCols = Object.entries(visibility)
+    .filter(([, isVisible]) => isVisible)
+    .map(([colId]) => colId)
+    .join(',')
+
+  return `?cols=${visibleCols}`
+}
+```
+
+**Column Visibility Toggle Component:**
+
+```typescript
+// src/components/ModelList/ColumnVisibilityToggle.tsx
+import { useCallback, useState, useEffect } from 'react'
+import type { Table } from '@tanstack/react-table'
+import { Checkbox } from '@/components/Shared/Checkbox'
+
+interface ColumnVisibilityToggleProps {
+  table: Table<FlattenedModel>
+  onVisibilityChange: (visibility: Record<string, boolean>) => void
+}
+
+const DEFAULT_VISIBLE_COLUMNS = [
+  'select',
+  'providerName',
+  'modelName',
+  'toolCall',
+  'cost.input',
+  'limits.context',
+]
+
+const ALL_COLUMNS = [
+  { id: 'select', label: 'Select' },
+  { id: 'providerName', label: 'Provider' },
+  { id: 'modelName', label: 'Model' },
+  { id: 'family', label: 'Family' },
+  { id: 'providerId', label: 'Provider ID' },
+  { id: 'modelId', label: 'Model ID' },
+  { id: 'toolCall', label: 'Tool Call' },
+  { id: 'reasoning', label: 'Reasoning' },
+  { id: 'inputModalities', label: 'Input' },
+  { id: 'outputModalities', label: 'Output' },
+  { id: 'cost.input', label: 'Input Cost' },
+  { id: 'cost.output', label: 'Output Cost' },
+  { id: 'cost.reasoning', label: 'Reasoning Cost' },
+  { id: 'cost.cacheRead', label: 'Cache Read Cost' },
+  { id: 'cost.cacheWrite', label: 'Cache Write Cost' },
+  { id: 'cost.audioInput', label: 'Audio Input Cost' },
+  { id: 'cost.audioOutput', label: 'Audio Output Cost' },
+  { id: 'limits.context', label: 'Context Limit' },
+  { id: 'limits.input', label: 'Input Limit' },
+  { id: 'limits.output', label: 'Output Limit' },
+  { id: 'structuredOutput', label: 'Structured Output' },
+  { id: 'temperature', label: 'Temperature' },
+  { id: 'openWeights', label: 'Weights' },
+  { id: 'knowledgeDate', label: 'Knowledge' },
+  { id: 'releaseDate', label: 'Release Date' },
+  { id: 'lastUpdated', label: 'Last Updated' },
+]
+
+export function ColumnVisibilityToggle({
+  table,
+  onVisibilityChange,
+}: ColumnVisibilityToggleProps) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const toggleColumn = useCallback(
+    (columnId: string) => {
+      const column = table.getColumn(columnId)
+      if (column) {
+        column.toggleVisibility()
+        const newVisibility = {
+          ...table.getState().columnVisibility,
+          [columnId]: !column.getIsVisible(),
+        }
+        onVisibilityChange(newVisibility)
+      }
+    },
+    [table, onVisibilityChange],
+  )
+
+  const showAll = useCallback(() => {
+    table.getAllLeafColumns().forEach((col) => col.toggleVisibility(true))
+    const newVisibility = Object.fromEntries(
+      table.getAllLeafColumns().map((col) => [col.id, true]),
+    )
+    onVisibilityChange(newVisibility)
+  }, [table, onVisibilityChange])
+
+  const resetToDefault = useCallback(() => {
+    table.getAllLeafColumns().forEach((col) => {
+      const shouldBeVisible = DEFAULT_VISIBLE_COLUMNS.includes(col.id)
+      col.toggleVisibility(shouldBeVisible)
+    })
+    const newVisibility = Object.fromEntries(
+      table.getAllLeafColumns().map((col) => [
+        col.id,
+        DEFAULT_VISIBLE_COLUMNS.includes(col.id),
+      ]),
+    )
+    onVisibilityChange(newVisibility)
+  }, [table, onVisibilityChange])
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        aria-label="Toggle column visibility"
+        aria-expanded={isOpen}
+      >
+        <svg
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        Columns
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+          <div className="absolute right-0 top-full mt-1 z-20 w-64 bg-white border border-gray-200 rounded-md shadow-lg p-2">
+            <div className="flex items-center justify-between px-2 py-1 mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                Visible Columns
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={resetToDefault}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={showAll}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  Show all
+                </button>
+              </div>
+            </div>
+            <div className="max-h-64 overflow-y-auto">
+              {ALL_COLUMNS.map((column) => {
+                const isVisible = table.getColumn(column.id)?.getIsVisible() ?? false
+                return (
+                  <label
+                    key={column.id}
+                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50 rounded cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={isVisible}
+                      onChange={() => toggleColumn(column.id)}
+                      aria-label={`${column.label} column`}
+                    />
+                    <span className="text-sm text-gray-700">{column.label}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+```
+
+**Persistence Strategy:**
+
+1. **URL (Primary):** Column visibility is synced to URL `?cols=...` for shareability
+2. **localStorage (Secondary):** Default column visibility preferences saved for new users
+
+```typescript
+// Persistence to localStorage for defaults
+const COLUMN_VISIBILITY_STORAGE_KEY = 'column-visibility-defaults'
+
+function saveDefaultColumnVisibility(
+  visibility: Record<string, boolean>,
+): void {
+  localStorage.setItem(
+    COLUMN_VISIBILITY_STORAGE_KEY,
+    JSON.stringify(visibility),
+  )
+}
+
+function loadDefaultColumnVisibility(): Record<string, boolean> | null {
+  if (typeof window === 'undefined') return null
+  const saved = localStorage.getItem(COLUMN_VISIBILITY_STORAGE_KEY)
+  return saved ? JSON.parse(saved) : null
+}
+```
+
+**UI Requirements:**
+
+1. **Toggle Button:** Located above the table on the right side
+2. **Dropdown Menu:** Shows all 27 columns with checkboxes
+3. **Show All/Reset:** Quick actions to toggle all columns or reset to defaults
+4. **Persistence:** URL for sharing, localStorage for defaults
+5. **Responsive:** Works on mobile with touch targets
+
+**Accessibility Considerations:**
+
+- `aria-label` on toggle button
+- `aria-expanded` state management
+- Keyboard navigation through column list
+- Focus management for dropdown
+
 ---
 
 ## 5. Component Specifications
@@ -1189,10 +1896,12 @@ For Phase 4 or later, consider implementing multi-sort with:
 
 ```typescript
 // src/components/ModelList/ModelList.tsx
+import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMemo, useRef, useCallback } from 'react'
 import type { FlattenedModel } from '@/types/models'
-import { ModelCard } from './ModelCard'
+import type { ColumnDef } from '@tanstack/react-table'
+import { ColumnVisibilityToggle } from './ColumnVisibilityToggle'
 
 interface ModelListProps {
   models: FlattenedModel[]
@@ -1201,6 +1910,74 @@ interface ModelListProps {
   isLoading: boolean
   error: Error | null
 }
+
+// Column definitions for the table
+const createModelColumns = (): ColumnDef<FlattenedModel>[] => [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <input
+        type="checkbox"
+        checked={table.getIsAllPageRowsSelected()}
+        onChange={table.getToggleAllPageRowsSelectedHandler()}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        type="checkbox"
+        checked={row.getIsSelected()}
+        disabled={!row.getCanSelect()}
+        onChange={row.getToggleSelectedHandler()}
+        aria-label={`Select ${row.original.modelName}`}
+      />
+    ),
+    enableSorting: false,
+  },
+  {
+    accessorKey: 'modelName',
+    header: 'Model',
+    cell: (info) => <span className="font-medium">{info.getValue() as string}</span>,
+  },
+  {
+    accessorKey: 'providerName',
+    header: 'Provider',
+  },
+  {
+    accessorKey: 'reasoning',
+    header: 'Reasoning',
+    cell: (info) => (info.getValue() ? '✓' : '—'),
+  },
+  {
+    accessorKey: 'toolCall',
+    header: 'Tools',
+    cell: (info) => (info.getValue() ? '✓' : '—'),
+  },
+  {
+    accessorKey: 'openWeights',
+    header: 'Open',
+    cell: (info) => (info.getValue() ? '✓' : '—'),
+  },
+  {
+    accessorKey: 'cost.input',
+    header: 'Input Cost',
+    cell: (info) => `$${(info.getValue() as number).toFixed(2)}/M`,
+  },
+  {
+    accessorKey: 'cost.output',
+    header: 'Output Cost',
+    cell: (info) => `$${(info.getValue() as number).toFixed(2)}/M`,
+  },
+  {
+    accessorKey: 'limits.context',
+    header: 'Context',
+    cell: (info) => (info.getValue() as number).toLocaleString(),
+  },
+  {
+    accessorKey: 'releaseDate',
+    header: 'Released',
+  },
+]
 
 export function ModelList({
   models,
@@ -1211,11 +1988,36 @@ export function ModelList({
 }: ModelListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
-  const virtualizer = useVirtualizer({
-    count: models.length,
+  // Initialize table with TanStack Table
+  const table = useReactTable({
+    data: models,
+    columns: createModelColumns(),
+    getCoreRowModel: getCoreRowModel(),
+    enableRowSelection: true,
+    state: {
+      rowSelection: Object.fromEntries(
+        selectedIds.map((id) => {
+          const model = models.find((m) => m.id === id)
+          return [model?.rowIndex, true]
+        }).filter(([, v]) => v !== undefined),
+      ),
+    },
+    onRowSelectionChange: (updater) => {
+      const newSelection = updater({})
+      Object.entries(newSelection).forEach(([index, selected]) => {
+        if (selected && models[parseInt(index)]) {
+          onModelSelect(models[parseInt(index)])
+        }
+      })
+    },
+  })
+
+  // Row virtualizer for performance
+  const rowVirtualizer = useVirtualizer({
+    count: table.getRowModel().rows.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 280,
-    overscan: 5,
+    estimateSize: () => 48,
+    overscan: 10,
   })
 
   const handleSelect = useCallback(
@@ -1238,33 +2040,68 @@ export function ModelList({
   }
 
   return (
-    <div
-      ref={parentRef}
-      className="overflow-auto container-padding"
-      style={{ height: 'calc(100vh - 280px)' }}
-    >
+    <div className="flex flex-col h-full">
+      <div className="flex justify-end p-2">
+        <ColumnVisibilityToggle table={table} />
+      </div>
       <div
-        style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}
+        ref={parentRef}
+        className="flex-1 overflow-auto"
+        style={{ height: 'calc(100vh - 280px)' }}
       >
-        {virtualizer.getVirtualItems().map((virtualRow) => (
-          <div
-            key={virtualRow.key}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: `${virtualRow.size}px`,
-              transform: `translateY(${virtualRow.start}px)`,
-            }}
-          >
-            <ModelCard
-              model={models[virtualRow.index]}
-              isSelected={selectedIds.includes(models[virtualRow.index].id)}
-              onSelect={() => handleSelect(models[virtualRow.index])}
-            />
-          </div>
-        ))}
+        <table className="w-full border-collapse">
+          <thead className="sticky top-0 bg-gray-50 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200 cursor-pointer hover:bg-gray-100"
+                    onClick={header.column.getToggleSortingHandler()}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : header.column.columnDef.header}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const row = table.getRowModel().rows[virtualRow.index]
+              return (
+                <tr
+                  key={row.id}
+                  className={`hover:bg-gray-50 ${row.getIsSelected() ? 'bg-blue-50' : ''}`}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="px-4 py-3 text-sm text-gray-900 border-b border-gray-100"
+                    >
+                      {cell.column.columnDef.cell(cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <div
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            position: 'relative',
+          }}
+        />
       </div>
     </div>
   )
@@ -1571,24 +2408,211 @@ TanStack Router provides file-based routing with built-in support for server-sid
 ```typescript
 // src/routes/__root.tsx
 import { createFileRoute } from '@tanstack/react-router'
-import { RouterProvider } from '@tanstack/react-router'
-import { queryClient } from '@/lib/query-client'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '@/integrations/tanstack-query/root-provider'
+import { TanStackRouterDevtools } from '@/integrations/tanstack-query/devtools'
+import { RouterProvider } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/__root')({
-  component: RootLayout,
+// Import routes
+import { IndexRoute } from './index'
+import { ModelRoute } from './models/$modelId'
+
+export const Route = createFileRoute('/')({
+  component: AppRoot,
 })
 
-function RootLayout() {
+function AppRoot() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <RouterOutlet />
-      </div>
+      <RootComponent />
+      {import.meta.env.DEV && <TanStackRouterDevtools />}
     </QueryClientProvider>
   )
 }
+
+function RootComponent() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main>
+        <RouterOutlet />
+      </main>
+    </div>
+  )
+}
+```
+
+**Models List Route with Loader:**
+
+```typescript
+// src/routes/models.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { fetchModels } from '@/lib/models-api'
+import { flattenModelsData } from '@/lib/models-transform'
+import { ModelList } from '@/components/ModelList'
+import { FilterPanel } from '@/components/FilterPanel'
+import { queryClient } from '@/integrations/tanstack-query/root-provider'
+
+export const Route = createFileRoute('/models')({
+  loader: async () => {
+    // Check cache first
+    const cached = queryClient.getQueryData(['models'])
+    if (cached) {
+      return cached
+    }
+
+    // Fetch fresh data
+    const data = await fetchModels()
+    const flattened = flattenModelsData(data)
+
+    // Cache for 24 hours
+    queryClient.setQueryData(['models'], flattened)
+
+    return flattened
+  },
+  component: ModelsRoute,
+})
+
+function ModelsRoute() {
+  const models = Route.useLoaderData()
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [comparisonModels, setComparisonModels] = useState<FlattenedModel[]>([])
+
+  const handleModelSelect = useCallback((model: FlattenedModel) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(model.id)) {
+        return prev.filter((id) => id !== model.id)
+      }
+      if (prev.length < 4) {
+        return [...prev, model.id]
+      }
+      return prev
+    })
+  }, [])
+
+  return (
+    <div className="flex">
+      <FilterPanel
+        providers={getUniqueProviders(models)}
+        onFiltersChange={handleFilterChange}
+      />
+      <ModelList
+        models={models}
+        onModelSelect={handleModelSelect}
+        selectedIds={selectedIds}
+        isLoading={false}
+        error={null}
+      />
+    </div>
+  )
+}
+```
+
+**Model Detail Route:**
+
+```typescript
+// src/routes/models/$modelId.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { fetchModels } from '@/lib/models-api'
+import { flattenModelsData } from '@/lib/models-transform'
+import { queryClient } from '@/integrations/tanstack-query/root-provider'
+
+export const Route = createFileRoute('/models/$modelId')({
+  loader: async ({ params }) => {
+    const allModels = queryClient.getQueryData(['models']) as FlattenedModel[]
+      || flattenModelsData(await fetchModels())
+
+    const model = allModels.find((m) => m.id === params.modelId)
+
+    if (!model) {
+      throw new Error(`Model not found: ${params.modelId}`)
+    }
+
+    return model
+  },
+  component: ModelDetailRoute,
+})
+
+function ModelDetailRoute() {
+  const model = Route.useLoaderData()
+
+  return (
+    <div className="model-detail">
+      <h1>{model.modelName}</h1>
+      <ProviderLogo providerId={model.providerId} />
+      {/* Detail content */}
+    </div>
+  )
+}
+```
+
+**Search Params Integration:**
+
+```typescript
+// src/routes/models.tsx
+export const Route = createFileRoute('/models')({
+  loader: async ({ deps }) => {
+    // loader receives search params via deps
+    const data = await fetchModels()
+    return flattenModelsData(data)
+  },
+  component: ModelsRoute,
+})
+
+function ModelsRoute() {
+  const models = Route.useLoaderData()
+  const search = useSearch() // Access search params
+
+  // Filter models based on search params
+  const filteredModels = useMemo(() => {
+    return applySearchFilters(models, search)
+  }, [models, search])
+
+  return <ModelList models={filteredModels} />
+}
+```
+
+**Route Structure:**
+
+| Route Pattern | File                  | Component        | Loader Data               |
+| ------------- | --------------------- | ---------------- | ------------------------- |
+| `/`           | `index.tsx`           | IndexRoute       | Featured models, stats    |
+| `/models`     | `models.tsx`          | ModelsRoute      | All flattened models      |
+| `/models/:id` | `models/$modelId.tsx` | ModelDetailRoute | Single model with details |
+| `/compare`    | `compare.tsx`         | CompareRoute     | Selected model IDs        |
+
+**Error Handling:**
+
+```typescript
+// src/routes/__root.tsx
+import { ErrorBoundary } from '@tanstack/react-router'
+
+export const Route = createFileRoute('/')({
+  component: AppRoot,
+  errorComponent: ({ error }) => (
+    <div className="error-state">
+      <h1>Something went wrong</h1>
+      <p>{error.message}</p>
+      <button onClick={() => window.location.reload()}>Retry</button>
+    </div>
+  ),
+})
+```
+
+**Lazy Loading Routes:**
+
+```typescript
+// src/routes/__root.tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { lazy } from 'react'
+
+const ModelsRoute = lazy(() =>
+  import('./models').then((mod) => ({ default: mod.ModelList })),
+)
+
+export const Route = createFileRoute('/models')({
+  component: ModelsRoute,
+})
 ```
 
 **Home Page with Loader and TanStack Query:**
@@ -1680,14 +2704,15 @@ For scenarios where you want to use server functions directly with TanStack Quer
 // src/lib/models-api.ts
 import { createServerFn } from '@tanstack/react-start'
 
-export const fetchModels = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const fetchModels = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const response = await fetch('https://models.dev/api.json')
     if (!response.ok) {
       throw new Error(`Failed to fetch models: ${response.statusText}`)
     }
     return response.json()
-  })
+  },
+)
 
 export const modelsQueryOptions = () =>
   queryOptions({
@@ -2751,136 +3776,676 @@ test.describe('Performance', () => {
 
 ## 11. Implementation Phases
 
-### 11.1 Phase 1: Foundation (Week 1)
+This section outlines the step-by-step implementation plan for the AI Models Explorer project. The development has been broken down into 10 manageable phases, each focusing on a specific aspect of the application.
+
+### 11.1 Phase 1: Project Setup
+
+**Duration:** 2-3 days
+
+**Objectives:**
+
+- Set up the development environment
+- Install and configure all dependencies
+- Verify existing queryClient integration
+- Establish project structure
+
+**Tasks:**
+
+1. **Environment Setup**
+   - Verify Node.js version compatibility
+   - Check existing TanStack Start installation
+   - Review current `package.json` dependencies
+
+2. **Dependency Installation**
+   - `@tanstack/react-table` for table functionality
+   - `@tanstack/react-virtual` for virtualization
+   - `@tanstack/react-router` (if not already installed)
+   - `lucide-react` for icons
+   - TypeScript types for all libraries
+
+3. **Configuration**
+   - Update `tsconfig.json` for new types
+   - Verify `vite.config.ts` handles new libraries
+   - Configure ESLint for new dependencies
+
+4. **Project Structure**
+   - Create component directories
+   - Set up type definitions
+   - Establish import aliases
 
 **Deliverables:**
 
-1. Project Setup
-   - Install additional dependencies (`@tanstack/react-virtual`, `@tanstack/react-table`, `fuse.js`)
-   - Configure TypeScript paths and types
-   - Set up linting and formatting
+- Working dev server with new dependencies
+- Updated `package.json` with all required dependencies
+- Basic project structure in place
 
-2. API Integration
-   - Implement `fetchModelsData()` function
-   - Set up TanStack Query with 24h staleTime
-   - Create data transformation pipeline
-   - Add API response validation with Zod
+---
 
-3. TypeScript Types
-   - Define `Provider`, `Model`, `FlattenedModel` types
-   - Define `FilterState` and `SortState` types
-   - Create type guards and validation
+### 11.2 Phase 2: TypeScript Types
 
-4. Basic Layout
-   - Create `__root.tsx` layout with header
-   - Set up main grid layout (filters + list)
-   - Implement responsive breakpoints
+**Duration:** 1-2 days
 
-**Acceptance Criteria:**
+**Objectives:**
 
-- [ ] API fetches and caches data correctly
-- [ ] Data transforms to flattened structure
-- [ ] TypeScript compilation succeeds with no errors
-- [ ] Basic layout renders on all screen sizes
+- Define all 27 column types
+- Create FlattenedModel interface
+- Establish utility types
 
-### 11.2 Phase 2: Filtering (Week 2)
+**Tasks:**
+
+1. **Core Type Definitions**
+
+   ```typescript
+   // src/types/models.ts
+   export interface ModelCost {
+     input: number
+     output: number
+     cacheRead?: number | null
+     cacheWrite?: number | null
+     reasoning?: number | null
+     audioInput?: number | null
+     audioOutput?: number | null
+   }
+
+   export interface ModelLimits {
+     context: number
+     input?: number | null
+     output: number
+   }
+
+   export interface FlattenedModel {
+     id: string
+     providerId: string
+     providerName: string
+     modelId: string
+     modelName: string
+     family: string
+     toolCall: boolean
+     reasoning: boolean
+     structuredOutput?: boolean
+     temperature?: boolean
+     inputModalities: string[]
+     outputModalities: string[]
+     cost: ModelCost
+     limits: ModelLimits
+     openWeights: boolean
+     knowledgeDate?: string
+     releaseDate: string
+     lastUpdated: string
+   }
+   ```
+
+2. **Filter State Types**
+
+   ```typescript
+   export interface FilterState {
+     providers: string[]
+     reasoning?: boolean
+     toolCall?: boolean
+     structuredOutput?: boolean
+   }
+   ```
+
+3. **URL State Types**
+   ```typescript
+   export interface UrlState {
+     search: string
+     providers: string
+     reasoning: string
+     toolCall: string
+     sort: string
+     order: 'asc' | 'desc'
+     cols: string
+   }
+   ```
 
 **Deliverables:**
 
-1. Filter System
-   - Create `FilterPanel` component
-   - Implement provider multi-select filter
-   - Implement capability toggle filters
-   - Implement cost range slider
-   - Implement date range picker
+- Complete type definitions in `src/types/models.ts`
+- Type-safe components throughout the project
+- No `any` types used
 
-2. URL State Sync
-   - Implement `filtersToSearchParams()`
-   - Implement `searchParamsToFilters()`
-   - Handle browser back/forward navigation
-   - Sync filters to URL on change
+---
 
-3. Filter Logic
-   - Implement `applyFilters()` function
-   - Support filter combinations
-   - Add filter summary display
-   - Implement "Clear all filters" functionality
+### 11.3 Phase 3: API Integration
 
-**Acceptance Criteria:**
+**Duration:** 2-3 days
 
-- [ ] All filter types work correctly
-- [ ] Filters persist in URL
-- [ ] Browser back/forward works with filters
-- [ ] Filter combinations work as expected
+**Objectives:**
 
-### 11.3 Phase 3: Advanced Features (Week 3)
+- Implement server function for fetching models
+- Create data transformation utilities
+- Verify 24h caching with existing queryClient
+
+**Tasks:**
+
+1. **Server Function Implementation**
+
+   ```typescript
+   // src/lib/models-api.ts
+   import { createServerFn } from '@tanstack/react-start'
+
+   export const fetchModels = createServerFn({ method: 'GET' }).handler(
+     async () => {
+       const response = await fetch('https://models.dev/api.json')
+       if (!response.ok) throw new Error('Failed to fetch models')
+       return response.json()
+     },
+   )
+   ```
+
+2. **Data Transformation**
+
+   ```typescript
+   // src/lib/models-transform.ts
+   import type { ApiResponse, FlattenedModel } from '@/types/models'
+
+   export function flattenModelsData(response: ApiResponse): FlattenedModel[] {
+     const models: FlattenedModel[] = []
+     for (const [providerId, provider] of Object.entries(response)) {
+       for (const [modelId, model] of Object.entries(provider.models)) {
+         models.push({
+           id: `${providerId}/${modelId}`,
+           providerId,
+           providerName: provider.name,
+           modelId,
+           modelName: model.name,
+           family: model.family,
+           toolCall: model.tool_call,
+           reasoning: model.reasoning,
+           structuredOutput: model.structured_output,
+           temperature: model.temperature,
+           inputModalities: model.modalities.input,
+           outputModalities: model.modalities.output,
+           cost: {
+             input: model.cost.input,
+             output: model.cost.output,
+             cacheRead: model.cost.cache_read ?? null,
+             cacheWrite: model.cost.cache_write ?? null,
+             reasoning: model.cost.reasoning ?? null,
+             audioInput: model.cost.input_audio ?? null,
+             audioOutput: model.cost.output_audio ?? null,
+           },
+           limits: {
+             context: model.limit.context,
+             input: model.limit.input ?? null,
+             output: model.limit.output,
+           },
+           openWeights: model.open_weights,
+           knowledgeDate: model.knowledge,
+           releaseDate: model.release_date,
+           lastUpdated: model.last_updated,
+         })
+       }
+     }
+     return models
+   }
+   ```
+
+3. **Test API Integration**
+   - Verify data fetching works
+   - Test error handling
+   - Confirm caching with existing queryClient
 
 **Deliverables:**
 
-1. Search System
-   - Implement `SearchBar` component with debouncing
-   - Set up Fuse.js search index
-   - Search only provider and model names
-   - Add search result highlighting
-   - Show "No results" state
+- Working API integration
+- Data transformation utilities
+- Cached data for 24 hours
 
-2. Comparison Mode
-   - Implement model selection (checkboxes)
-   - Limit selection to 4 models
-   - Create comparison modal/panel
-   - Implement side-by-side comparison table
-   - Highlight differences between models
-   - Add share via URL functionality
+---
 
-3. Model Detail Page
-   - Create `/models/:modelId` route
-   - Display full model specifications
-   - Add "Related models" section
-   - Implement deep linking
+### 11.4 Phase 4: Basic Table Layout
 
-**Acceptance Criteria:**
+**Duration:** 2-3 days
 
-- [ ] Search finds models and providers
-- [ ] Comparison modal shows 2-4 models side-by-side
-- [ ] Differences are highlighted
-- [ ] Share URL copies to clipboard correctly
-- [ ] Model detail page displays all specifications
+**Objectives:**
 
-### 11.4 Phase 4: Polish & Optimization (Week 4)
+- Create ModelList component
+- Define all 27 column definitions
+- Basic table rendering without virtualization
 
-**Deliverances:**
+**Tasks:**
 
-1. Performance Optimization
-   - Implement virtual scrolling for model list
-   - Add code splitting for heavy components
-   - Memoize expensive computations
-   - Optimize bundle size
+1. **Column Definitions**
+   - Implement all 27 columns from models.dev
+   - Add proper cell renderers
+   - Configure sorting and filtering
 
-2. UI/UX Polish
-   - Add skeleton loading states
-   - Implement error boundaries
-   - Add empty states
-   - Improve accessibility (ARIA, keyboard nav)
-   - Add animations and transitions
+2. **Basic Table Structure**
 
-3. Testing
-   - Unit tests for filter logic (80% coverage)
-   - Component tests for major components
-   - E2E tests for critical paths
-   - Performance tests
+   ```typescript
+   // src/components/ModelList/ModelList.tsx
+   import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
 
-4. Documentation
-   - Update README with new features
-   - Add inline code documentation
-   - Create API documentation
+   export function ModelList({ models }: ModelListProps) {
+     const table = useReactTable({
+       data: models,
+       columns: modelColumns,
+       getCoreRowModel: getCoreRowModel(),
+     })
 
-**Acceptance Criteria:**
+     return (
+       <table>
+         <thead>
+           {table.getHeaderGroups().map(headerGroup => (
+             <tr key={headerGroup.id}>
+               {headerGroup.headers.map(header => (
+                 <th key={header.id}>
+                   {flexRender(header.column.columnDef.header, header.getContext())}
+                 </th>
+               ))}
+             </tr>
+           ))}
+         </thead>
+         <tbody>
+           {table.getRowModel().rows.map(row => (
+             <tr key={row.id}>
+               {row.getVisibleCells().map(cell => (
+                 <td key={cell.id}>
+                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                 </td>
+               ))}
+             </tr>
+           ))}
+         </tbody>
+       </table>
+     )
+   }
+   ```
 
-- [ ] LCP under 1.5s
-- [ ] 80% test coverage
-- [ ] All interactive elements keyboard accessible
-- [ ] Smooth animations (60fps)
-- [ ] Error states display correctly
+3. **Test Basic Rendering**
+   - Verify all 27 columns render
+   - Check column alignment
+   - Test sorting on all columns
+
+**Deliverables:**
+
+- Working table with all 27 columns
+- Basic sorting functionality
+- Type-safe column definitions
+
+---
+
+### 11.5 Phase 5: Search Integration
+
+**Duration:** 2-3 days
+
+**Objectives:**
+
+- Implement SearchBar component
+- Integrate with TanStack Table's globalFilter
+- Sync search state to URL
+- Add debouncing
+
+**Tasks:**
+
+1. **SearchBar Component**
+
+   ```typescript
+   // src/components/SearchBar/SearchBar.tsx
+   import { useState, useEffect, useCallback } from 'react'
+   import { useDebounce } from '@/lib/hooks/useDebounce'
+
+   interface SearchBarProps {
+     value: string
+     onChange: (value: string) => void
+     placeholder?: string
+   }
+
+   export function SearchBar({ value, onChange, placeholder }: SearchBarProps) {
+     const [inputValue, setInputValue] = useState(value)
+     const debouncedValue = useDebounce(inputValue, 300)
+
+     useEffect(() => {
+       if (debouncedValue !== value) {
+         onChange(debouncedValue)
+       }
+     }, [debouncedValue, onChange, value])
+
+     return (
+       <input
+         type="search"
+         value={inputValue}
+         onChange={(e) => setInputValue(e.target.value)}
+         placeholder={placeholder}
+       />
+     )
+   }
+   ```
+
+2. **URL Sync**
+
+   ```typescript
+   // Sync search to URL
+   const [search, setSearch] = useSearchParams()
+   const [globalFilter, setGlobalFilter] = useState(search.get('search') || '')
+
+   useEffect(() => {
+     setSearch((prev) => {
+       if (globalFilter) {
+         prev.set('search', globalFilter)
+       } else {
+         prev.delete('search')
+       }
+       return prev
+     })
+   }, [globalFilter, setSearch])
+   ```
+
+3. **TanStack Table Integration**
+   ```typescript
+   const table = useReactTable({
+     data: models,
+     columns: modelColumns,
+     state: {
+       globalFilter,
+     },
+     onGlobalFilterChange: setGlobalFilter,
+   })
+   ```
+
+**Deliverables:**
+
+- Working search with debouncing
+- URL synchronization
+- Type-safe search implementation
+
+---
+
+### 11.6 Phase 6: Filter Integration
+
+**Duration:** 3-4 days
+
+**Objectives:**
+
+- Implement FilterPanel component
+- Create individual filter components
+- Integrate with TanStack Table's columnFilters
+- Sync filter state to URL
+
+**Tasks:**
+
+1. **Filter Components**
+   - ProviderFilter (multi-select)
+   - CapabilityFilter (toggles)
+   - DateRangeFilter (date picker)
+
+2. **URL State Integration**
+
+   ```typescript
+   // Sync filters to URL
+   useEffect(() => {
+     setSearch((prev) => {
+       if (providers.length) {
+         prev.set('providers', providers.join(','))
+       } else {
+         prev.delete('providers')
+       }
+       if (reasoning !== undefined) {
+         prev.set('reasoning', String(reasoning))
+       }
+       return prev
+     })
+   }, [providers, reasoning, setSearch])
+   ```
+
+3. **TanStack Table columnFilters**
+
+   ```typescript
+   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+
+   const table = useReactTable({
+     data: models,
+     columns: modelColumns,
+     state: {
+       columnFilters,
+     },
+     onColumnFiltersChange: setColumnFilters,
+   })
+   ```
+
+**Deliverables:**
+
+- Working filter panel
+- URL synchronization for all filters
+- TanStack Table integration
+
+---
+
+### 11.7 Phase 7: Column Visibility
+
+**Duration:** 2-3 days
+
+**Objectives:**
+
+- Implement ColumnVisibilityToggle component
+- Show/hide columns UI
+- Sync column visibility to URL
+- Persist defaults to localStorage
+
+**Tasks:**
+
+1. **Column Toggle Component**
+   - Dropdown with all 27 columns
+   - Checkbox for each column
+   - Show all / Reset to defaults
+
+2. **URL Synchronization**
+
+   ```typescript
+   // URL format: ?cols=provider,model,tool-call,cost.input
+   useEffect(() => {
+     const visibleCols = Object.entries(columnVisibility)
+       .filter(([, isVisible]) => isVisible)
+       .map(([colId]) => colId)
+       .join(',')
+
+     setSearch((prev) => {
+       if (visibleCols) {
+         prev.set('cols', visibleCols)
+       }
+       return prev
+     })
+   }, [columnVisibility, setSearch])
+   ```
+
+3. **localStorage Persistence**
+   - Save default column visibility
+   - Load preferences on first visit
+
+**Deliverables:**
+
+- Working column visibility toggle
+- URL sync for column visibility
+- localStorage for defaults
+
+---
+
+### 11.8 Phase 8: Virtualization & Performance
+
+**Duration:** 2-3 days
+
+**Objectives:**
+
+- Add row virtualization with TanStack Virtual
+- Optimize rendering for 500+ rows
+- Test scroll performance
+- Add loading/skeleton states
+
+**Tasks:**
+
+1. **Virtualization Integration**
+
+   ```typescript
+   import { useVirtualizer } from '@tanstack/react-virtual'
+
+   const rowVirtualizer = useVirtualizer({
+     count: table.getRowModel().rows.length,
+     getScrollElement: () => parentRef.current,
+     estimateSize: () => 48,
+     overscan: 10,
+   })
+   ```
+
+2. **Performance Optimization**
+   - Memoize column definitions
+   - Use useMemo for expensive computations
+   - Implement proper key props
+
+3. **Loading States**
+   ```typescript
+   if (isLoading) {
+     return <SkeletonList count={10} />
+   }
+   ```
+
+**Deliverables:**
+
+- Virtualized table rendering
+- Smooth scrolling with 500+ rows
+- Loading skeleton states
+
+---
+
+### 11.9 Phase 9: Polishing
+
+**Duration:** 3-4 days
+
+**Objectives:**
+
+- Add responsive design
+- Implement accessibility features
+- Add error boundaries
+- Create empty states
+- Add animations/transitions
+
+**Tasks:**
+
+1. **Responsive Design**
+   - Horizontal scroll for small screens
+   - Mobile-friendly filter panel
+   - Touch-friendly interactions
+
+2. **Accessibility**
+   - ARIA labels on all interactive elements
+   - Keyboard navigation
+   - Screen reader support
+
+3. **Error Boundaries**
+
+   ```typescript
+   <ErrorBoundary fallback={({ error }) => (
+     <ErrorState error={error} onRetry={() => window.location.reload()} />
+   )}>
+     <ModelList />
+   </ErrorBoundary>
+   ```
+
+4. **Empty States**
+
+   ```typescript
+   if (models.length === 0) {
+     return <EmptyState message="No models found matching your criteria" />
+   }
+   ```
+
+5. **Animations**
+   - Smooth transitions for filter changes
+   - Hover effects on rows
+   - Loading skeleton animations
+
+**Deliverables:**
+
+- Fully responsive application
+- Accessible to all users
+- Error handling and empty states
+- Polished UI with animations
+
+---
+
+### 11.10 Phase 10: Optional - Comparison
+
+**Duration:** TBD (if requested)
+
+**Objectives:**
+
+- Comparison modal/panel
+- Side-by-side view
+- Share via URL
+- Highlight differences
+
+**Tasks:**
+
+1. **Selection Mechanism**
+   - Checkbox in select column
+   - Max 4 models for comparison
+   - Visual indicator of selected models
+
+2. **Comparison Modal**
+
+   ```typescript
+   export function ComparisonModal({ models }: ComparisonModalProps) {
+     return (
+       <div className="modal-overlay">
+         <div className="modal-content">
+           <ComparisonTable models={models} />
+         </div>
+       </div>
+     )
+   }
+   ```
+
+3. **Share via URL**
+
+   ```typescript
+   function generateShareUrl(models: FlattenedModel[]): string {
+     const modelIds = models.map((m) => m.id).join(',')
+     const url = new URL(window.location.href)
+     url.searchParams.set('compare', modelIds)
+     return url.toString()
+   }
+   ```
+
+4. **Highlight Differences**
+
+   ```typescript
+   function ComparisonRow({ row, models }: ComparisonRowProps) {
+     const values = models.map((m) => row.getValue(m.id))
+     const allEqual = values.every((v) => v === values[0])
+
+     return (
+       <tr className={allEqual ? '' : 'highlight-difference'}>
+         {/* cells */}
+       </tr>
+     )
+   }
+   ```
+
+**Deliverables:**
+
+- Working comparison feature
+- Shareable comparison URLs
+- Visual difference highlighting
+
+---
+
+### 11.11 Phase Summary
+
+| Phase | Duration | Focus Area                   |
+| ----- | -------- | ---------------------------- |
+| 1     | 2-3 days | Project Setup                |
+| 2     | 1-2 days | TypeScript Types             |
+| 3     | 2-3 days | API Integration              |
+| 4     | 2-3 days | Basic Table Layout           |
+| 5     | 2-3 days | Search Integration           |
+| 6     | 3-4 days | Filter Integration           |
+| 7     | 2-3 days | Column Visibility            |
+| 8     | 2-3 days | Virtualization & Performance |
+| 9     | 3-4 days | Polishing                    |
+| 10    | TBD      | Optional - Comparison        |
+
+**Total Estimated Time:** 20-28 days (excluding Phase 10)
 
 ---
 
@@ -2955,7 +4520,10 @@ test.describe('Performance', () => {
 ```typescript
 // src/types/models.ts
 
-// API Response Types
+// ============================================
+// API Response Types (from models.dev)
+// ============================================
+
 export interface ApiResponse {
   [providerId: string]: Provider
 }
@@ -2980,7 +4548,8 @@ export interface Model {
   reasoning: boolean
   tool_call: boolean
   temperature: boolean
-  knowledge: string // YYYY-MM format
+  structured_output?: boolean
+  knowledge?: string // YYYY-MM format
   release_date: string // YYYY-MM-DD format
   last_updated: string // YYYY-MM-DD format
   modalities: {
@@ -2993,72 +4562,98 @@ export interface Model {
     output: number // dollars per 1M tokens
     cache_read?: number
     cache_write?: number
+    reasoning?: number
+    input_audio?: number
+    output_audio?: number
   }
   limit: {
     context: number // max context tokens
+    input?: number // max input tokens (optional)
     output: number // max output tokens
   }
 }
 
-// Flattened Model (for easier processing)
+// ============================================
+// Flattened Model (for easier processing with TanStack Table)
+// ============================================
+
 export interface FlattenedModel {
-  // Composite ID
+  // Composite ID (providerId/modelId)
   id: string
+
   // Provider info
   providerId: string
   providerName: string
+
   // Model info
   modelId: string
   modelName: string
   family: string
-  // Capabilities
+
+  // Capabilities (boolean flags)
   attachment: boolean
   reasoning: boolean
   toolCall: boolean
-  temperature: boolean
+  structuredOutput?: boolean
+  temperature?: boolean
+
   // Dates
-  knowledgeDate: string
+  knowledgeDate?: string
   releaseDate: string
   lastUpdated: string
+
   // Modalities
   inputModalities: string[]
   outputModalities: string[]
+
   // Access
   openWeights: boolean
-  // Costs
+
+  // Costs (normalized to dollars per 1M tokens)
   cost: {
     input: number
     output: number
-    cacheRead: number | null
-    cacheWrite: number | null
+    cacheRead?: number | null
+    cacheWrite?: number | null
+    reasoning?: number | null
+    audioInput?: number | null
+    audioOutput?: number | null
   }
+
   // Limits
   limits: {
     context: number
+    input?: number | null
     output: number
   }
+
   // Metadata
   npm: string
-  apiEndpoint: string
+  apiEndpoint?: string
   documentation: string
   environment: string[]
 }
 
-// Filter Types
+// ============================================
+// Filter State
+// ============================================
+
 export interface FilterState {
   providers: string[]
   capabilities: {
-    reasoning: boolean | null
-    toolCall: boolean | null
-    openWeights: boolean | null
+    reasoning?: boolean
+    toolCall?: boolean
+    structuredOutput?: boolean
+    temperature?: boolean
+    openWeights?: boolean
   }
   costRange: {
     min: number
     max: number | null
   }
   dateRange: {
-    start: string | null // YYYY-MM-DD
-    end: string | null // YYYY-MM-DD
+    start: string | null // YYYY-MM format
+    end: string | null
   }
   modalities: {
     input: string[]
@@ -3068,11 +4663,7 @@ export interface FilterState {
 
 export const defaultFilters: FilterState = {
   providers: [],
-  capabilities: {
-    reasoning: null,
-    toolCall: null,
-    openWeights: null,
-  },
+  capabilities: {},
   costRange: {
     min: 0,
     max: null,
@@ -3087,8 +4678,35 @@ export const defaultFilters: FilterState = {
   },
 }
 
+// ============================================
 // Sort Types
-export type SortField = 'name' | 'provider' | 'releaseDate' | 'cost' | 'context'
+// ============================================
+
+export type SortField =
+  | 'providerName'
+  | 'modelName'
+  | 'family'
+  | 'providerId'
+  | 'modelId'
+  | 'toolCall'
+  | 'reasoning'
+  | 'cost.input'
+  | 'cost.output'
+  | 'cost.reasoning'
+  | 'cost.cacheRead'
+  | 'cost.cacheWrite'
+  | 'cost.audioInput'
+  | 'cost.audioOutput'
+  | 'limits.context'
+  | 'limits.input'
+  | 'limits.output'
+  | 'structuredOutput'
+  | 'temperature'
+  | 'openWeights'
+  | 'knowledgeDate'
+  | 'releaseDate'
+  | 'lastUpdated'
+
 export type SortDirection = 'asc' | 'desc'
 
 export interface SortState {
@@ -3096,17 +4714,29 @@ export interface SortState {
   direction: SortDirection
 }
 
+// ============================================
+// URL State
+// ============================================
+
+export interface UrlState {
+  search: string
+  providers: string
+  reasoning: string
+  toolCall: string
+  structuredOutput: string
+  temperature: string
+  sort: string
+  order: 'asc' | 'desc'
+  cols: string
+}
+
+// ============================================
 // Comparison Types
+// ============================================
+
 export interface ComparisonState {
   selectedIds: string[]
   maxSelection: 4
-}
-
-// Search Types
-export interface SearchResult {
-  item: FlattenedModel
-  score: number
-  matches: Fuse.FuseResultMatch[]
 }
 ```
 
@@ -3118,10 +4748,11 @@ export interface SearchResult {
 src/
 ├── components/
 │   ├── ModelList/
-│   │   ├── ModelList.tsx
-│   │   ├── ModelCard.tsx
-│   │   ├── VirtualListContainer.tsx
-│   │   ├── SkeletonCard.tsx
+│   │   ├── ModelList.tsx              # Main table component with TanStack Table
+│   │   ├── ColumnVisibilityToggle.tsx # Column selector UI
+│   │   ├── ProviderLogo.tsx           # Provider logo component
+│   │   ├── ModelIdCopy.tsx            # Copy button for Model ID
+│   │   ├── ModalityIcon.tsx           # Icons for text/image/audio/video/pdf
 │   │   └── index.ts
 │   ├── FilterPanel/
 │   │   ├── FilterPanel.tsx
@@ -3129,7 +4760,6 @@ src/
 │   │   ├── CapabilityFilter.tsx
 │   │   ├── CostRangeFilter.tsx
 │   │   ├── DateRangeFilter.tsx
-│   │   ├── ModalitiesFilter.tsx
 │   │   └── index.ts
 │   ├── SearchBar/
 │   │   ├── SearchBar.tsx
@@ -3142,9 +4772,13 @@ src/
 │   │   └── index.ts
 │   ├── Shared/
 │   │   ├── Badge.tsx
+│   │   ├── Button.tsx
+│   │   ├── Checkbox.tsx
 │   │   ├── CostDisplay.tsx
-│   │   ├── LoadingSpinner.tsx
 │   │   ├── EmptyState.tsx
+│   │   ├── ErrorState.tsx
+│   │   ├── LoadingSpinner.tsx
+│   │   ├── SkeletonList.tsx
 │   │   └── index.ts
 │   ├── Header/
 │   │   ├── Header.tsx
@@ -3156,30 +4790,30 @@ src/
 ├── routes/
 │   ├── __root.tsx
 │   ├── index.tsx
-│   ├── compare.tsx
-│   └── models.$modelId.tsx
+│   ├── models.tsx
+│   ├── models.$modelId.tsx
+│   └── compare.tsx
 ├── lib/
-│   ├── models-api.ts
-│   ├── models-transform.ts
-│   ├── models-filters.ts
-│   ├── models-search.ts
-│   ├── url-state.ts
-│   └── query-client.ts
+│   ├── models-api.ts                  # Server function for fetchModels
+│   ├── models-transform.ts            # Flatten API response
+│   ├── url-state.ts                   # URL state sync utilities
+│   └── query-client.ts                # (use existing from root-provider)
 ├── hooks/
 │   ├── useDebounce.ts
 │   ├── useLocalStorage.ts
 │   └── useComparison.ts
-├── utils/
-│   ├── cost.ts
-│   ├── format.ts
-│   └── comparison.ts
 ├── types/
-│   └── models.ts
+│   └── models.ts                      # All TypeScript types
 ├── data/
-│   └── sample-models.ts
+│   └── sample-models.ts               # Demo data for development
+├── integrations/
+│   └── tanstack-query/
+│       ├── root-provider.tsx          # Existing queryClient
+│       └── devtools.tsx               # Existing devtools
 ├── styles/
 │   └── styles.css
-└── router.tsx
+├── router.tsx
+└── App.tsx
 ```
 
 ---
@@ -3238,8 +4872,8 @@ export interface ModelsApiResponse {
   }
 }
 
-export const fetchModels = createServerFn({ method: 'GET' })
-  .handler(async () => {
+export const fetchModels = createServerFn({ method: 'GET' }).handler(
+  async () => {
     const response = await fetch('https://models.dev/api.json', {
       headers: {
         Accept: 'application/json',
@@ -3251,7 +4885,8 @@ export const fetchModels = createServerFn({ method: 'GET' })
     }
 
     return response.json() as Promise<ModelsApiResponse>
-  })
+  },
+)
 ```
 
 #### Usage in Route Loaders (SSR)
@@ -3367,12 +5002,14 @@ The server function fetches data from models.dev API and returns the same struct
 
 **Document Version History**
 
-| Version | Date       | Author           | Changes                                                                                                                                                                                                                                                                                                                                  |
-| ------- | ---------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1.0.0   | 2025-12-28 | Technical Writer | Initial specification                                                                                                                                                                                                                                                                                                                    |
-| 1.1.0   | 2025-12-28 | Technical Writer | - Removed custom cache manager - use TanStack Query's built-in caching<br>- Updated to Tailwind CSS v4 with @theme inline<br>- Added TanStack Start server functions (createServerFn)<br>- Updated routing with loaders for SSR<br>- Emphasized full TanStack ecosystem integration<br>- Updated architecture diagrams and code examples |
-| 1.3.0   | 2025-12-28 | Senior Engineer  | - Updated all `createServerFn` examples to use the correct TanStack Start pattern: `createServerFn({ method: 'GET' }).handler(async () => { })` instead of deprecated `createServerFn('GET', async () => { })`                                                                                                                           |
-| 1.2.0   | 2025-12-28 | Senior Engineer  | - Moved hooks/ and utils/ to root level (src/hooks/, src/utils/)<br>- Removed entry files (App.tsx, main.tsx, entry-client.tsx, entry-server.tsx)<br>- Updated file structure for TanStack Start architecture<br>- Updated Appendix C API Reference to explain createServerFn pattern instead of REST endpoints                          |
+| Version | Date       | Author           | Changes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------- | ---------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.0.0   | 2025-12-29 | Senior Engineer  | - Complete rewrite for v2.0.0 with TanStack Table integration<br>- Search and Filters now integrate with TanStack Table (globalFilter, columnFilters)<br>- Use existing queryClient from `src/integrations/tanstack-query/root-provider`<br>- All 27 columns from models.dev implemented in Section 4.1<br>- Comparison feature moved to Phase 10 (optional)<br>- Phases broken down from 4 to 10 smaller phases (11.1-11.10)<br>- Updated Section 2.1 Data Flow Diagram to remove "computed dataset"<br>- Completely rewritten Section 3.4 State Management with URL State vs TanStack Query comparison<br>- Removed Section 3.2 (Data Transformation - replaced with streamlined version)<br>- Enhanced Section 4.6 Column Visibility with URL sync<br>- Updated Section 6.1 to use existing queryClient<br>- Updated Appendix A with all 27 column types<br>- Updated Appendix B with new component file structure |
+| 1.4.0   | 2025-12-28 | Senior Engineer  | - Models list now uses TanStack Table for table structure with row virtualization<br>- Added Section 4.1: Table List with TanStack Table and Row Virtualization<br>- Added Section 4.6: Column Visibility Management<br>- Updated ModelList component (5.1) to use TanStack Table<br>- Added ColumnVisibilityToggle component<br>- Column visibility persisted to localStorage<br>- Updated TanStack ecosystem table (1.3) to show TanStack Table for main models list                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 1.3.0   | 2025-12-28 | Senior Engineer  | - Updated all `createServerFn` examples to use the correct TanStack Start pattern: `createServerFn({ method: 'GET' }).handler(async () => { })` instead of deprecated `createServerFn('GET', async () => { })`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 1.2.0   | 2025-12-28 | Senior Engineer  | - Moved hooks/ and utils/ to root level (src/hooks/, src/utils/)<br>- Removed entry files (App.tsx, main.tsx, entry-client.tsx, entry-server.tsx)<br>- Updated file structure for TanStack Start architecture<br>- Updated Appendix C API Reference to explain createServerFn pattern instead of REST endpoints                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 1.1.0   | 2025-12-28 | Technical Writer | - Removed custom cache manager - use TanStack Query's built-in caching<br>- Updated to Tailwind CSS v4 with @theme inline<br>- Added TanStack Start server functions (createServerFn)<br>- Updated routing with loaders for SSR<br>- Emphasized full TanStack ecosystem integration<br>- Updated architecture diagrams and code examples                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| 1.0.0   | 2025-12-28 | Technical Writer | Initial specification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ---
 

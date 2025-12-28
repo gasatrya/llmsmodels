@@ -40,6 +40,8 @@ npm run format
 npm run check  # prettier --write + eslint --fix
 ```
 
+Please note, every error from `/demo/` should be skipped.
+
 ---
 
 ## Code Style Guidelines
@@ -212,3 +214,7 @@ JSDoc for complex functions/public APIs, inline for non-obvious logic, avoid red
 | `vite.config.ts`     | Vite build config                           |
 | `eslint.config.js`   | ESLint rules                                |
 | `prettier.config.js` | Prettier formatting                         |
+
+## Demo Files
+
+Demo files under `src/routes/demo` use it as guide, skip the linter error.
