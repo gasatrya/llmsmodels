@@ -220,6 +220,10 @@ describe('Button', () => {
 
 JSDoc for complex functions/public APIs, inline for non-obvious logic, avoid redundancy.
 
+### TypeScript
+
+- Array notation: Array<Type> not Type[]
+
 ---
 
 ## Key Files
