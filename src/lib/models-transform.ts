@@ -1,5 +1,8 @@
 import type { FlattenedModel, ModelsApiResponse } from '@/types/models'
 
+// Safe access pattern for missing API data
+// The API may return models with undefined cost, limit, or modalities objects
+// We use optional chaining (?.) and nullish coalescing (??) to provide sensible defaults
 export function flattenModelsData(
   response: ModelsApiResponse,
 ): Array<FlattenedModel> {
@@ -25,22 +28,23 @@ export function flattenModelsData(
         temperature: model.temperature,
 
         // Modalities
-        inputModalities: model.modalities.input,
-        outputModalities: model.modalities.output,
+        inputModalities: model.modalities?.input ?? [],
+        outputModalities: model.modalities?.output ?? [],
 
         // Costs (normalized to dollars per 1M tokens)
-        inputCost: model.cost.input,
-        outputCost: model.cost.output,
-        reasoningCost: model.cost.reasoning ?? undefined,
-        cacheReadCost: model.cost.cacheRead ?? undefined,
-        cacheWriteCost: model.cost.cacheWrite ?? undefined,
-        audioInputCost: model.cost.inputAudio ?? undefined,
-        audioOutputCost: model.cost.outputAudio ?? undefined,
+        // Missing data = not displayed (undefined fallback)
+        inputCost: model.cost?.input,
+        outputCost: model.cost?.output,
+        reasoningCost: model.cost?.reasoning,
+        cacheReadCost: model.cost?.cacheRead,
+        cacheWriteCost: model.cost?.cacheWrite,
+        audioInputCost: model.cost?.inputAudio,
+        audioOutputCost: model.cost?.outputAudio,
 
         // Limits
-        contextLimit: model.limit.context,
-        inputLimit: model.limit.input ?? undefined,
-        outputLimit: model.limit.output,
+        contextLimit: model.limit?.context ?? 0,
+        inputLimit: model.limit?.input,
+        outputLimit: model.limit?.output ?? 0,
 
         // Access
         weights: model.openWeights ? 'Open' : 'Closed',

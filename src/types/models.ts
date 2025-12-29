@@ -60,9 +60,9 @@ export interface ModelData {
   lastUpdated: string
   openWeights: boolean
   status?: 'alpha' | 'beta' | 'deprecated'
-  cost: Cost
-  limit: Limit
-  modalities: Modalities
+  cost?: Cost
+  limit?: Limit
+  modalities?: Modalities
 }
 
 /**
@@ -105,8 +105,8 @@ export interface FlattenedModel {
   outputModalities: Array<Modality>
 
   // Costs (per 1M tokens)
-  inputCost: number
-  outputCost: number
+  inputCost?: number
+  outputCost?: number
   reasoningCost?: number
   cacheReadCost?: number
   cacheWriteCost?: number
