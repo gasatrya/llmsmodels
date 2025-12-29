@@ -17,14 +17,23 @@ A React-based AI Models Explorer application that allows users to browse, search
 | 1     | ✅ COMPLETED | 2-3 days | Project Setup                     | Dependencies, folders, existing queryClient pattern | Commit: "feat: complete Phase 1 project setup"            |
 | 2     | ✅ COMPLETED | 1-2 days | TypeScript Types                  | All 27 column types defined                         | Audit: `docs/reviews/audit-models-types-phase2.md` - PASS |
 | 3     | ✅ COMPLETED | 2-3 days | API Integration                   | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS              |
-| 3.5   | ⏳ PENDING   | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | -                                                         |
-| 5     | ⏳ PENDING   | 2-3 days | Basic Table Layout                | ModelList component, 27 columns                     | -                                                         |
+| 3.5   | ✅ COMPLETED | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | QA: docs/qa/phase3-5-server-api.md - PASS                 |
+| 4     | ✅ COMPLETED | 2-3 days | Basic Table Layout                | ModelList component, 27 columns, sorting            | Commit: 4fa0940, QA: PASS, Review: PASS                   |
+| 5     | ⏳ PENDING   | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | -                                                         |
 | 6     | ⏳ PENDING   | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | -                                                         |
 | 7     | ⏳ PENDING   | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | -                                                         |
 | 8     | ⏳ PENDING   | 2-3 days | Column Visibility                 | ColumnVisibilityToggle, URL sync                    | -                                                         |
 | 9     | ⏳ PENDING   | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                         |
 | 10    | ⏳ PENDING   | 3-4 days | Polishing                         | Responsive design, accessibility, animations        | -                                                         |
 | 11    | 🔮 OPTIONAL  | TBD      | Comparison                        | Comparison modal, side-by-side view                 | TBD                                                       |
+
+---
+
+## Total Progress
+
+- **Phases Completed:** 5 out of 11
+- **Progress:** ~45%
+- **Current Phase:** Phase 5 - Pagination Controls
 
 ---
 
@@ -177,11 +186,32 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ## Phase 3.5: Custom Server API with Pagination
 
-**Status:** ⏳ PENDING
+**Status:** ✅ COMPLETED
 
 **Duration:** 2-3 days
 
-**Focus Area:** Server-side pagination, search, and filtering
+**Completion Notes**
+
+- **Date Completed:** December 2025
+- **Commit:** 2796e63
+- **QA Report:** `docs/qa/phase3-5-server-api.md` - PASS ✅
+- **Research:** `docs/research/phase3-5-server-api-patterns.md`
+- **Files Created:** 5 files
+  - `src/lib/api/models.ts` (250+ lines) - Main server API implementation
+  - `src/lib/models-transform.ts` - Data transformation utility
+  - `docs/qa/phase3-5-server-api.md` - QA report
+  - `docs/research/phase3-5-server-api-patterns.md` - Research document
+- **Key Achievements:**
+  - In-memory caching of models.dev data
+  - Server-side pagination (page, limit parameters)
+  - Server-side filtering (search, providers, capabilities)
+  - Server-side sorting
+  - Fuse.js integration for fuzzy search
+  - Reduced initial load (50 rows vs 2000+)
+
+### Focus Area
+
+Server-side pagination, search, and filtering
 
 ### Objectives
 
@@ -244,11 +274,24 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 5: Basic Table Layout
+## Phase 4: Basic Table Layout
 
-**Status:** ⏳ PENDING
+**Status:** ✅ COMPLETED
 
 **Duration:** 2-3 days
+
+**Completion Notes**
+
+- **Date Completed:** December 2025
+- **Commit:** 4fa0940
+- **QA Report:** `docs/qa/phase4-model-list.md` - PASS ✅
+- **Review:** `docs/reviews/audit-phase4-model-list.md` - PASS ✅
+- **Key Deliverables:**
+  - ModelList component with all 27 columns
+  - Column definitions with proper cell renderers
+  - Sorting functionality on all columns
+  - Row selection capability
+  - Integration with TanStack Table
 
 ### Objectives
 
@@ -282,6 +325,51 @@ A React-based AI Models Explorer application that allows users to browse, search
 ### Key Files
 
 - `src/components/ModelList/index.ts`
+- `src/components/ModelList/ModelList.tsx`
+
+---
+
+## Phase 5: Pagination Controls
+
+**Status:** ⏳ PENDING
+
+**Duration:** 2-3 days
+
+### Objectives
+
+- Create PaginationControls component
+- Integrate with server-side pagination (page, limit parameters)
+- Add Previous/Next navigation buttons
+- Add page numbers and "Showing X of Y results" display
+- Sync pagination state to URL
+
+### Tasks
+
+1. **PaginationControls Component**
+   - Create component with Previous/Next buttons
+   - Add page number display
+   - Implement "Showing X of Y results" text
+
+2. **URL Synchronization**
+   - Sync page and limit to URL params
+   - Handle initial state from URL
+   - Update URL on page change
+
+3. **Server Integration**
+   - Connect to server-side pagination API
+   - Handle page changes with data refetch
+   - Manage loading states
+
+### Deliverables
+
+- Working pagination controls
+- URL synchronization for pagination
+- Server-side pagination integration
+- "Showing X of Y results" display
+
+### Key Files
+
+- `src/components/PaginationControls/index.ts`
 
 ---
 
@@ -590,6 +678,6 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-_Last Updated: December 2025_
+_Last Updated: December 29, 2025_
 _Document Owner: Technical Writer_
 _Source: `docs/spec/models-explorer.md` Section 11_

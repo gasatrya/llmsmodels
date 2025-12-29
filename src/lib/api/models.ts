@@ -62,7 +62,7 @@ async function loadModelsData(): Promise<Array<FlattenedModel>> {
   }
 
   // Fetch fresh data from models.dev
-  const response = await fetch('https://models.dev/api/json', {
+  const response = await fetch('https://models.dev/api.json', {
     headers: {
       Accept: 'application/json',
       'User-Agent':

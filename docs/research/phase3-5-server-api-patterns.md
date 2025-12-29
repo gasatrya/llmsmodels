@@ -315,7 +315,7 @@ export async function getModelsFromCache(): Promise<Array<FlattenedModel>> {
   }
 
   // Fetch fresh data
-  const response = await fetch('https://models.dev/api/json')
+  const response = await fetch('https://models.dev/api.json')
   const apiResponse: ModelsApiResponse = await response.json()
   modelsCache = flattenModelsData(apiResponse)
   cacheLoadTime = now
@@ -812,7 +812,7 @@ async function loadModelsData(): Promise<Array<FlattenedModel>> {
   }
 
   // Fetch fresh data from models.dev
-  const response = await fetch('https://models.dev/api/json')
+  const response = await fetch('https://models.dev/api.json')
 
   if (!response.ok) {
     throw new Error(`Failed to fetch models: ${response.statusText}`)
