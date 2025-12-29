@@ -6,24 +6,25 @@ Tracking document for all implementation phases of the AI Models Explorer projec
 
 A React-based AI Models Explorer application that allows users to browse, search, and filter through 500+ AI models from various providers. The application uses TanStack Start for the framework, TanStack Table for data presentation, and TanStack Query for data fetching with 24-hour caching.
 
-**Total Estimated Time:** 20-28 days (excluding Phase 10)
+**Total Estimated Time:** 22-31 days (excluding Phase 10)
 
 ---
 
 ## Progress Tracking Table
 
-| Phase | Status       | Duration | Focus Area                   | Key Deliverables                                    | Review                                                    |
-| ----- | ------------ | -------- | ---------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
-| 1     | ✅ COMPLETED | 2-3 days | Project Setup                | Dependencies, folders, existing queryClient pattern | Commit: "feat: complete Phase 1 project setup"            |
-| 2     | ✅ COMPLETED | 1-2 days | TypeScript Types             | All 27 column types defined                         | Audit: `docs/reviews/audit-models-types-phase2.md` - PASS |
-| 3     | ✅ COMPLETED | 2-3 days | API Integration              | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS              |
-| 4     | ⏳ PENDING   | 2-3 days | Basic Table Layout           | ModelList component, 27 columns                     | -                                                         |
-| 5     | ⏳ PENDING   | 2-3 days | Search Integration           | SearchBar, globalFilter, URL sync                   | -                                                         |
-| 6     | ⏳ PENDING   | 3-4 days | Filter Integration           | FilterPanel, columnFilters, URL sync                | -                                                         |
-| 7     | ⏳ PENDING   | 2-3 days | Column Visibility            | ColumnVisibilityToggle, URL sync                    | -                                                         |
-| 8     | ⏳ PENDING   | 2-3 days | Virtualization & Performance | Row virtualization, loading states                  | -                                                         |
-| 9     | ⏳ PENDING   | 3-4 days | Polishing                    | Responsive design, accessibility, animations        | -                                                         |
-| 10    | 🔮 OPTIONAL  | TBD      | Comparison                   | Comparison modal, side-by-side view                 | TBD                                                       |
+| Phase | Status       | Duration | Focus Area                        | Key Deliverables                                    | Review                                                    |
+| ----- | ------------ | -------- | --------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
+| 1     | ✅ COMPLETED | 2-3 days | Project Setup                     | Dependencies, folders, existing queryClient pattern | Commit: "feat: complete Phase 1 project setup"            |
+| 2     | ✅ COMPLETED | 1-2 days | TypeScript Types                  | All 27 column types defined                         | Audit: `docs/reviews/audit-models-types-phase2.md` - PASS |
+| 3     | ✅ COMPLETED | 2-3 days | API Integration                   | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS              |
+| 3.5   | ⏳ PENDING   | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | -                                                         |
+| 5     | ⏳ PENDING   | 2-3 days | Basic Table Layout                | ModelList component, 27 columns                     | -                                                         |
+| 6     | ⏳ PENDING   | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | -                                                         |
+| 7     | ⏳ PENDING   | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | -                                                         |
+| 8     | ⏳ PENDING   | 2-3 days | Column Visibility                 | ColumnVisibilityToggle, URL sync                    | -                                                         |
+| 9     | ⏳ PENDING   | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                         |
+| 10    | ⏳ PENDING   | 3-4 days | Polishing                         | Responsive design, accessibility, animations        | -                                                         |
+| 11    | 🔮 OPTIONAL  | TBD      | Comparison                        | Comparison modal, side-by-side view                 | TBD                                                       |
 
 ---
 
@@ -174,7 +175,76 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 4: Basic Table Layout
+## Phase 3.5: Custom Server API with Pagination
+
+**Status:** ⏳ PENDING
+
+**Duration:** 2-3 days
+
+**Focus Area:** Server-side pagination, search, and filtering
+
+### Objectives
+
+- Create custom server API endpoint for models
+- Implement in-memory caching of models.dev data
+- Add server-side pagination (page, limit)
+- Add server-side filtering (search, providers, capabilities)
+- Add server-side sorting
+- Return paginated results with metadata
+
+### Tasks
+
+1. **Server Function with createServerFn**
+   - Create `/api/models` endpoint
+   - Load models.dev JSON once (in-memory cache)
+   - Transform to flattened format on server
+   - Implement pagination logic (page × limit)
+
+2. **Server-Side Filtering**
+   - Implement text search on providerName + modelName
+   - Implement provider filtering (multi-select)
+   - Implement capability filters (reasoning, toolCall, etc.)
+   - Use Fuse.js for fuzzy search on server
+
+3. **Server-Side Sorting**
+   - Sort by any field (name, cost, date, etc.)
+   - Support asc/desc direction
+
+4. **API Response Structure**
+
+   ```typescript
+   {
+     data: FlattenedModel[],      // Current page of results
+     pagination: {
+       page: number,                // Current page number
+       limit: number,               // Items per page
+       total: number,               // Total matching items
+       totalPages: number            // Total pages available
+     }
+   }
+   ```
+
+5. **Client Integration**
+   - Update modelsQueryOptions to use new API
+   - Pass page, limit, search, filters as params
+   - Update index.tsx to use paginated data
+
+### Deliverables
+
+- Working `/api/models` server endpoint
+- Server-side pagination, search, and filtering
+- Reduced initial load (50 rows vs 2000+)
+- URL parameters work correctly
+
+### Key Files
+
+- `src/lib/api/models.ts` (new)
+- `src/lib/models-transform.ts` (move transform logic here)
+- `src/routes/index.tsx` (update)
+
+---
+
+## Phase 5: Basic Table Layout
 
 **Status:** ⏳ PENDING
 
@@ -215,7 +285,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 5: Search Integration
+## Phase 6: Search Integration
 
 **Status:** ⏳ PENDING
 
@@ -257,7 +327,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 6: Filter Integration
+## Phase 7: Filter Integration
 
 **Status:** ⏳ PENDING
 
@@ -299,7 +369,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 7: Column Visibility
+## Phase 8: Column Visibility
 
 **Status:** ⏳ PENDING
 
@@ -341,7 +411,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 8: Virtualization & Performance
+## Phase 9: Virtualization & Performance
 
 **Status:** ⏳ PENDING
 
@@ -383,7 +453,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 9: Polishing
+## Phase 10: Polishing
 
 **Status:** ⏳ PENDING
 
@@ -433,7 +503,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ---
 
-## Phase 10: Optional - Comparison
+## Phase 11: Optional - Comparison
 
 **Status:** 🔮 OPTIONAL
 
@@ -488,7 +558,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 - **Complete table columns:** All 27 columns must match models.dev exactly
 
-- **Comparison feature:** Moved to Phase 10 (optional, TBD)
+- **Comparison feature:** Moved to Phase 11 (optional, TBD)
 
 ### Code Style Requirements
 
