@@ -19,8 +19,8 @@ A React-based AI Models Explorer application that allows users to browse, search
 | 3     | ✅ COMPLETED | 2-3 days | API Integration                   | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS              |
 | 3.5   | ✅ COMPLETED | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | QA: docs/qa/phase3-5-server-api.md - PASS                 |
 | 4     | ✅ COMPLETED | 2-3 days | Basic Table Layout                | ModelList component, 27 columns, sorting            | Commit: 4fa0940, QA: PASS, Review: PASS                   |
-| 5     | ⏳ PENDING   | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | -                                                         |
-| 6     | ⏳ PENDING   | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | -                                                         |
+| 5     | ✅ COMPLETED | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | Commit: `feat(phase5): implement PaginationControls`      |
+| 6     | ✅ COMPLETED | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | Commit: `feat(phase6): implement SearchBar`               |
 | 7     | ⏳ PENDING   | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | -                                                         |
 | 8     | ⏳ PENDING   | 2-3 days | Column Visibility                 | ColumnVisibilityToggle, URL sync                    | -                                                         |
 | 9     | ⏳ PENDING   | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                         |
@@ -31,9 +31,9 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ## Total Progress
 
-- **Phases Completed:** 5 out of 11
-- **Progress:** ~45%
-- **Current Phase:** Phase 5 - Pagination Controls
+- **Phases Completed:** 6 out of 11
+- **Progress:** ~55%
+- **Current Phase:** Phase 7 - Filter Integration
 
 ---
 
@@ -331,9 +331,26 @@ Server-side pagination, search, and filtering
 
 ## Phase 5: Pagination Controls
 
-**Status:** ⏳ PENDING
+**Status:** ✅ COMPLETED
 
 **Duration:** 2-3 days
+
+### Completion Notes
+
+- **Date Completed:** December 2025
+- **Commit:** `feat(phase5): implement PaginationControls`
+- **QA Report:** `docs/qa/phase5-pagination-controls.md` - PASS ✅
+- **Files Created:** 2 files
+  - `src/components/PaginationControls/PaginationControls.tsx` - Pagination UI component
+  - `src/components/PaginationControls/index.ts` - Component exports
+- **Files Modified:** 1 file
+  - `src/routes/index.tsx` - Integrated pagination with server-side API
+- **Key Achievements:**
+  - Previous/Next navigation buttons
+  - Page number display and navigation
+  - "Showing X of Y results" display
+  - URL synchronization (?page= and ?limit=)
+  - Server-side pagination integration
 
 ### Objectives
 
@@ -375,11 +392,31 @@ Server-side pagination, search, and filtering
 
 ## Phase 6: Search Integration
 
-**Status:** ⏳ PENDING
+**Status:** ✅ COMPLETED
 
 **Duration:** 2-3 days
 
-### Objectives
+### Completion Notes
+
+- **Date Completed:** December 29, 2025
+- **Commit:** `feat(phase6): implement SearchBar with debounced input and URL sync`
+- **QA Report:** `docs/qa/phase6-searchbar.md` - PASS ✅
+- **Files Created:** 2 files
+  - `src/hooks/useDebounce.ts` - Generic debounce hook with 300ms default delay
+  - `src/components/SearchBar/SearchBar.tsx` - SearchBar component with debounced input
+- **Files Modified:** 4 files
+  - `src/hooks/index.ts` - Added export for useDebounce
+  - `src/components/SearchBar/index.ts` - Added export for SearchBar
+  - `src/routes/index.tsx` - Integrated SearchBar with URL sync and server-side search
+  - `docs/qa/phase6-searchbar.md` - QA report
+- **Key Achievements:**
+  - SearchBar component with Lucide icons and clear button
+  - 300ms debounced input using useDebounce hook
+  - URL state synchronization (?search=)
+  - Connected to Phase 3.5 server API (Fuse.js fuzzy search)
+  - TanStack Table integration with manualFiltering: true
+  - Proper caching with search in queryKey
+  - ARIA labels for accessibility
 
 - Implement SearchBar component
 - Integrate with TanStack Table's globalFilter
