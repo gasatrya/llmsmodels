@@ -11,6 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { z } from 'zod'
 import type {
   ColumnDef,
   PaginationState,
@@ -23,9 +24,30 @@ import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
 
+// Define search params schema
+const indexSearchSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(50),
+  search: z.string().default(''),
+})
+
 export const Route = createFileRoute('/')({
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(modelsQueryOptions()),
+  validateSearch: indexSearchSchema,
+  loaderDeps: ({ search }) => ({
+    page: search.page,
+    limit: search.limit,
+    searchQuery: search.search,
+  }),
+  loader: async ({ deps, context }) => {
+    return context.queryClient.ensureQueryData(
+      modelsQueryOptions({
+        page: deps.page,
+        limit: deps.limit,
+        search: deps.searchQuery,
+        providers: [],
+      }),
+    )
+  },
   component: IndexPage,
 })
 
@@ -358,55 +380,39 @@ const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   }) as ColumnDef<FlattenedModel>,
 ]
 
-// Hook to read search params from URL
-function useSearchParams(): {
-  page: string | undefined
-  limit: string | undefined
-  search: string | undefined
-} {
-  const [params, setParams] = React.useState(() => {
-    if (typeof window === 'undefined')
-      return { page: '1', limit: '50', search: '' }
-    const urlParams = new URLSearchParams(window.location.search)
-    return {
-      page: urlParams.get('page') ?? '1',
-      limit: urlParams.get('limit') ?? '50',
-      search: urlParams.get('search') ?? '',
-    }
-  })
-
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    setParams({
-      page: urlParams.get('page') ?? '1',
-      limit: urlParams.get('limit') ?? '50',
-      search: urlParams.get('search') ?? '',
-    })
-  }, [])
-
-  return params
-}
-
 function IndexPage() {
-  const { data: ssrdata } = useSuspenseQuery(modelsQueryOptions())
+  // Use TanStack Router's Route.useSearch hook (SSR-safe, typed based on validateSearch schema)
+  const search = Route.useSearch()
 
-  // Read search params from URL
-  const searchParams = useSearchParams()
+  // Use TanStack Router's navigate function
+  const navigate = Route.useNavigate()
+
+  // Query with params from URL (SSR-safe)
+  const { data: ssrdata } = useSuspenseQuery(
+    modelsQueryOptions({
+      page: search.page,
+      limit: search.limit,
+      search: search.search,
+      providers: [],
+    }),
+  )
 
   // Pagination state from URL or defaults
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: Number(searchParams.page) - 1,
-    pageSize: Number(searchParams.limit),
+  const [pagination, setPagination] = useState<PaginationState>(() => {
+    return {
+      pageIndex: search.page - 1,
+      pageSize: search.limit,
+    }
   })
 
   // Sorting and row selection state
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
-  // Global filter state (synced with TanStack Table)
-  const [globalFilter, setGlobalFilter] = useState<string>(
-    searchParams.search ?? '',
-  )
+  // Global filter state (synced with TanStack Table, initialized from URL)
+  const [globalFilter, setGlobalFilter] = useState<string>(() => {
+    return search.search
+  })
 
   // Query with pagination
   const modelsQuery = useQuery({
@@ -451,27 +457,29 @@ function IndexPage() {
     filterFns: {},
     enableRowSelection: true,
     enableMultiRowSelection: true,
-    getRowId: (row) => row.modelId,
+    getRowId: (row) => `${row.providerId}-${row.modelId}`,
   })
 
   // Update URL when pagination changes
   useEffect(() => {
-    const newUrl = new URL(window.location.href)
-    newUrl.searchParams.set('page', String(pagination.pageIndex + 1))
-    newUrl.searchParams.set('limit', String(pagination.pageSize))
-    window.history.pushState({}, '', newUrl.toString())
-  }, [pagination])
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+      }),
+    })
+  }, [pagination, navigate])
 
   // Update URL when search changes
   useEffect(() => {
-    const newUrl = new URL(window.location.href)
-    if (globalFilter) {
-      newUrl.searchParams.set('search', globalFilter)
-    } else {
-      newUrl.searchParams.delete('search')
-    }
-    window.history.pushState({}, '', newUrl.toString())
-  }, [globalFilter])
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        search: globalFilter || undefined,
+      }),
+    })
+  }, [globalFilter, navigate])
 
   const selectedRows = table.getSelectedRowModel().rows
   const totalCount = modelsQuery.data.pagination.total
