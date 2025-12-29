@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useQuery,
+  useSuspenseQuery,
+} from '@tanstack/react-query'
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -14,11 +18,13 @@ import type {
   SortingState,
 } from '@tanstack/react-table'
 import type { FlattenedModel } from '@/types/models'
-import { getModels } from '@/lib/api/models'
+import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 
 export const Route = createFileRoute('/')({
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(modelsQueryOptions()),
   component: IndexPage,
 })
 
@@ -377,6 +383,8 @@ function useSearchParams(): {
 }
 
 function IndexPage() {
+  const { data: ssrdata } = useSuspenseQuery(modelsQueryOptions())
+
   // Read search params from URL
   const searchParams = useSearchParams()
 
@@ -401,18 +409,19 @@ function IndexPage() {
         },
       }),
     placeholderData: keepPreviousData,
+    initialData: ssrdata,
   })
 
   // Table with manual pagination
   const table = useReactTable({
-    data: modelsQuery.data?.data ?? [],
+    data: modelsQuery.data.data,
     columns: modelColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
 
     // Server-side pagination
     manualPagination: true,
-    rowCount: modelsQuery.data?.pagination.total,
+    rowCount: modelsQuery.data.pagination.total,
     state: {
       pagination,
       sorting,
@@ -437,7 +446,7 @@ function IndexPage() {
   }, [pagination])
 
   const selectedRows = table.getSelectedRowModel().rows
-  const totalCount = modelsQuery.data?.pagination.total ?? 0
+  const totalCount = modelsQuery.data.pagination.total
 
   if (modelsQuery.isError) {
     return (
@@ -499,7 +508,7 @@ function IndexPage() {
         <PaginationControls
           table={table}
           isFetching={modelsQuery.isFetching}
-          totalRows={modelsQuery.data?.pagination.total}
+          totalRows={modelsQuery.data.pagination.total}
           className="mt-4"
         />
       </div>
