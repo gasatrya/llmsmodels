@@ -1,1 +1,1 @@
-// Re-export ModelList components
+export { ModelList } from './ModelList'
