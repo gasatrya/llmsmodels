@@ -261,7 +261,7 @@ TanStack Start provides `createServerFn` for type-safe server-side data fetching
 
 **Server Function for Fetching Models:**
 
-```typescript
+````typescript
 // src/lib/models-api.ts
 import { createServerFn } from '@tanstack/react-start'
 
@@ -362,7 +362,7 @@ export const modelsQueryOptions = (params: GetModelsInput) =>
     queryFn: () => getModels({ data: params }),
     staleTime: 24 * 60 * 60 * 1000,
   })
-```
+````
 
 **Benefits of Phase 3.5 Server API:**
 
@@ -1408,7 +1408,7 @@ TanStack Table provides built-in filtering capabilities for UI state management.
 
 **Server-Side Filtering Pattern:**
 
-```typescript
+````typescript
 // TanStack Table manages filter state, server handles actual filtering
 const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
@@ -1446,7 +1446,7 @@ TanStack Table supports various built-in filter functions:
   header: 'Provider',
   filterFn: 'includesString', // Substring matching
 }
-```
+````
 
 **Server-Side Filtering with Phase 3.5 API:**
 
