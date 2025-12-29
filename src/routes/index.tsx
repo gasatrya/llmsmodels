@@ -21,6 +21,7 @@ import type { FlattenedModel } from '@/types/models'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
+import { SearchBar } from '@/components/SearchBar'
 
 export const Route = createFileRoute('/')({
   loader: ({ context }) =>
@@ -361,13 +362,16 @@ const modelColumns: Array<ColumnDef<FlattenedModel>> = [
 function useSearchParams(): {
   page: string | undefined
   limit: string | undefined
+  search: string | undefined
 } {
   const [params, setParams] = React.useState(() => {
-    if (typeof window === 'undefined') return { page: '1', limit: '50' }
+    if (typeof window === 'undefined')
+      return { page: '1', limit: '50', search: '' }
     const urlParams = new URLSearchParams(window.location.search)
     return {
       page: urlParams.get('page') ?? '1',
       limit: urlParams.get('limit') ?? '50',
+      search: urlParams.get('search') ?? '',
     }
   })
 
@@ -376,6 +380,7 @@ function useSearchParams(): {
     setParams({
       page: urlParams.get('page') ?? '1',
       limit: urlParams.get('limit') ?? '50',
+      search: urlParams.get('search') ?? '',
     })
   }, [])
 
@@ -398,14 +403,20 @@ function IndexPage() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
+  // Global filter state (synced with TanStack Table)
+  const [globalFilter, setGlobalFilter] = useState<string>(
+    searchParams.search ?? '',
+  )
+
   // Query with pagination
   const modelsQuery = useQuery({
-    queryKey: ['models', pagination],
+    queryKey: ['models', pagination, globalFilter],
     queryFn: () =>
       getModels({
         data: {
           page: pagination.pageIndex + 1,
           limit: pagination.pageSize,
+          search: globalFilter,
         },
       }),
     placeholderData: keepPreviousData,
@@ -422,14 +433,20 @@ function IndexPage() {
     // Server-side pagination
     manualPagination: true,
     rowCount: modelsQuery.data.pagination.total,
+
+    // Server-side filtering
+    manualFiltering: true,
+
     state: {
       pagination,
       sorting,
       rowSelection,
+      globalFilter,
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     // @ts-expect-error - filterFns is required due to module augmentation in demo/table.tsx but we don't use it
     filterFns: {},
     enableRowSelection: true,
@@ -444,6 +461,17 @@ function IndexPage() {
     newUrl.searchParams.set('limit', String(pagination.pageSize))
     window.history.pushState({}, '', newUrl.toString())
   }, [pagination])
+
+  // Update URL when search changes
+  useEffect(() => {
+    const newUrl = new URL(window.location.href)
+    if (globalFilter) {
+      newUrl.searchParams.set('search', globalFilter)
+    } else {
+      newUrl.searchParams.delete('search')
+    }
+    window.history.pushState({}, '', newUrl.toString())
+  }, [globalFilter])
 
   const selectedRows = table.getSelectedRowModel().rows
   const totalCount = modelsQuery.data.pagination.total
@@ -475,6 +503,13 @@ function IndexPage() {
       </header>
 
       <div className="space-y-4">
+        {/* Search Bar */}
+        <SearchBar
+          value={globalFilter}
+          onChange={setGlobalFilter}
+          className="max-w-md"
+        />
+
         {/* Selection info */}
         {selectedRows.length > 0 && (
           <div className="px-4 py-3 bg-blue-50 text-blue-800 rounded-lg flex items-center justify-between">
@@ -492,6 +527,8 @@ function IndexPage() {
         )}
 
         {/* Table */}
+        {/* isPending check is intentional for UX during page/search changes despite initialData */}
+        {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
         {modelsQuery.isPending ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-gray-500">Loading models...</div>

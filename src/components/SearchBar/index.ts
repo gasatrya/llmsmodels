@@ -1,1 +1,1 @@
-// Re-export SearchBar components
+export { SearchBar } from './SearchBar'
