@@ -248,10 +248,22 @@ export const modelsQueryOptions = (
     limit: 50,
     search: '',
     providers: [],
+    reasoning: undefined,
+    toolCall: undefined,
+    structuredOutput: undefined,
   },
 ) =>
   queryOptions({
-    queryKey: ['models', params],
+    queryKey: [
+      'models',
+      params.page,
+      params.limit,
+      params.search,
+      params.providers,
+      params.reasoning,
+      params.toolCall,
+      params.structuredOutput,
+    ],
     queryFn: () => getModels({ data: params }),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
   })

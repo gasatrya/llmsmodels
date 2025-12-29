@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import {
   keepPreviousData,
@@ -19,16 +19,24 @@ import type {
   SortingState,
 } from '@tanstack/react-table'
 import type { FlattenedModel } from '@/types/models'
+import type { FilterState } from '@/types/filters'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
+import { FilterPanel } from '@/components/FilterPanel'
 
 // Define search params schema
 const indexSearchSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(50),
   search: z.string().default(''),
+
+  // Filter parameters
+  providers: z.array(z.string()).default([]),
+  reasoning: z.boolean().optional(),
+  toolCall: z.boolean().optional(),
+  structuredOutput: z.boolean().optional(),
 })
 
 export const Route = createFileRoute('/')({
@@ -37,6 +45,11 @@ export const Route = createFileRoute('/')({
     page: search.page,
     limit: search.limit,
     searchQuery: search.search,
+    // Filter deps
+    providers: search.providers,
+    reasoning: search.reasoning,
+    toolCall: search.toolCall,
+    structuredOutput: search.structuredOutput,
   }),
   loader: async ({ deps, context }) => {
     return context.queryClient.ensureQueryData(
@@ -44,7 +57,11 @@ export const Route = createFileRoute('/')({
         page: deps.page,
         limit: deps.limit,
         search: deps.searchQuery,
-        providers: [],
+        // Pass filters to API
+        providers: deps.providers,
+        reasoning: deps.reasoning,
+        toolCall: deps.toolCall,
+        structuredOutput: deps.structuredOutput,
       }),
     )
   },
@@ -393,7 +410,11 @@ function IndexPage() {
       page: search.page,
       limit: search.limit,
       search: search.search,
-      providers: [],
+      // Pass filters
+      providers: search.providers,
+      reasoning: search.reasoning,
+      toolCall: search.toolCall,
+      structuredOutput: search.structuredOutput,
     }),
   )
 
@@ -414,15 +435,30 @@ function IndexPage() {
     return search.search
   })
 
+  // Filter state
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    providers: search.providers,
+    capabilities: {
+      reasoning: search.reasoning,
+      toolCall: search.toolCall,
+      structuredOutput: search.structuredOutput,
+    },
+  }))
+
   // Query with pagination
   const modelsQuery = useQuery({
-    queryKey: ['models', pagination, globalFilter],
+    queryKey: ['models', pagination, globalFilter, filters],
     queryFn: () =>
       getModels({
         data: {
           page: pagination.pageIndex + 1,
           limit: pagination.pageSize,
           search: globalFilter,
+          // Pass filters
+          providers: filters.providers,
+          reasoning: filters.capabilities.reasoning,
+          toolCall: filters.capabilities.toolCall,
+          structuredOutput: filters.capabilities.structuredOutput,
         },
       }),
     placeholderData: keepPreviousData,
@@ -481,8 +517,35 @@ function IndexPage() {
     })
   }, [globalFilter, navigate])
 
+  // Update URL when filters change
+  useEffect(() => {
+    navigate({
+      search: {
+        ...search,
+        providers: filters.providers,
+        reasoning: filters.capabilities.reasoning,
+        toolCall: filters.capabilities.toolCall,
+        structuredOutput: filters.capabilities.structuredOutput,
+      },
+    })
+  }, [filters, navigate, search])
+
   const selectedRows = table.getSelectedRowModel().rows
   const totalCount = modelsQuery.data.pagination.total
+
+  // Get unique providers from models data
+  const uniqueProviders = useMemo(() => {
+    const providersMap = new Map<string, { id: string; name: string }>()
+    modelsQuery.data.data.forEach((model) => {
+      const id = model.providerName
+      if (!providersMap.has(id)) {
+        providersMap.set(id, { id, name: model.providerName })
+      }
+    })
+    return Array.from(providersMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    )
+  }, [modelsQuery.data])
 
   if (modelsQuery.isError) {
     return (
@@ -516,6 +579,13 @@ function IndexPage() {
           value={globalFilter}
           onChange={setGlobalFilter}
           className="max-w-md"
+        />
+
+        {/* Filter Panel */}
+        <FilterPanel
+          providers={uniqueProviders}
+          filters={filters}
+          onFiltersChange={setFilters}
         />
 
         {/* Selection info */}
