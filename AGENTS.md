@@ -38,8 +38,9 @@ When you have zero context about this project, just read `docs/spec/models-explo
 - **exa**: General web searches and content extraction
 - **exa**: Search and get relevant code snippets, examples, and documentation from open source libraries, GitHub repositories, and programming frameworks.
 - **playwright**: UI testing (when applicable)
-- **webfetch**: Fetch web content
+- **web-reader**: Main tool to fetch web content and extract relevant information.
 - **web-search-prime**: Web searches
+- **webfetch**: Secondary tool to fetch web content and extract relevant information, if `web-reader` fails.
 
 ## Tech Stack
 
@@ -114,12 +115,37 @@ export function Button({ children, variant = 'primary' }: ButtonProps) {
 
 ```
 src/
-├── components/     # Shared UI
+├── components/     # Shared UI components
+│   ├── FilterPanel/
+│   ├── ModelList/
+│   ├── SearchBar/
+│   ├── Shared/
+│   └── Header.tsx
 ├── data/          # Static data
-├── integrations/  # Third-party
-└── routes/        # File-based routing
-    ├── __root.tsx       # Root layout
-    ├── index.tsx        # /
+│   ├── demo-table-data.ts
+│   ├── demo.punk-songs.ts
+│   └── sample-models.ts
+├── hooks/         # Custom React hooks
+│   └── index.ts
+├── integrations/  # Third-party integrations
+│   └── tanstack-query/
+├── lib/           # Core library code
+│   ├── api/
+│   ├── models-api.ts
+│   ├── models-transform.ts
+│   └── index.ts
+├── routes/        # File-based routing
+│   ├── __root.tsx       # Root layout
+│   ├── index.tsx        # /
+│   └── demo/            # Demo routes
+├── types/         # TypeScript type definitions
+│   └── index.ts
+├── utils/         # Utility functions
+│   └── index.ts
+├── logo.svg
+├── router.tsx
+├── routeTree.gen.ts
+└── styles.css
 ```
 
 ---

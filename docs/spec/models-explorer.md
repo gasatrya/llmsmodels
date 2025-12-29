@@ -1,9 +1,19 @@
 # AI Models Explorer - Technical Specification Document
 
-**Version:** 2.0.0
+**Version:** 2.1.0
 **Last Updated:** 2025-12-29
 **Status:** Draft
 **Project:** Models Explorer (models.dev alternative)
+
+---
+
+**Changelog (v2.1.0):**
+
+- Updated to server-side architecture (Phase 3.5)
+- Added `manualPagination: true` and `manualFiltering: true` patterns
+- Documented Fuse.js fuzzy search integration
+- Added data flow diagrams for server-side operations
+- Added section 4.1.1: Server-Side Pagination, Search, and Filtering
 
 ---
 
@@ -11,7 +21,7 @@
 
 ### 1.1 Project Overview
 
-The AI Models Explorer is a web application that provides a comprehensive, performant interface for browsing and comparing AI models from various providers. The application serves as an enhanced alternative to models.dev, offering improved user experience, advanced filtering capabilities, side-by-side model comparison, and seamless data synchronization with the models.dev API.
+The AI Models Explorer is a web application that provides a comprehensive, performant interface for browsing and comparing AI models from various providers. The application serves as an enhanced alternative to models.dev, featuring **server-side pagination, filtering, and fuzzy search** via a dedicated Phase 3.5 API layer, offering improved user experience, advanced filtering capabilities, side-by-side model comparison, and seamless data synchronization with the models.dev API.
 
 The platform aggregates AI model information from multiple providers into a single, searchable interface. Users can filter models by various attributes such as capabilities (reasoning, tool calling), cost, release date, and supported modalities. The comparison feature allows users to select up to four models and view their specifications side-by-side with highlighted differences.
 
@@ -19,10 +29,11 @@ The platform aggregates AI model information from multiple providers into a sing
 
 **Primary Goals:**
 
-1. **Performance Excellence:** Achieve sub-second load times and 60fps interactions even with large model datasets (500+ models)
-2. **User Empowerment:** Enable users to quickly find and compare models using intuitive filters and search
+1. **Performance Excellence:** Achieve sub-second load times and 60fps interactions through server-side pagination that only fetches needed data (configurable page size, default 50 models per page)
+2. **User Empowerment:** Enable users to quickly find and compare models using intuitive filters and server-side fuzzy search
 3. **Data Accuracy:** Ensure model information is always current with automated 24-hour refresh cycles
 4. **Accessibility:** Create an inclusive interface that works for all users regardless of device or ability
+5. **Scalability:** Support large model datasets through server-side operations, eliminating client-side memory constraints
 
 **Secondary Objectives:**
 
@@ -100,6 +111,7 @@ This project leverages the full TanStack ecosystem for a cohesive, type-safe dev
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │              TanStack Virtual (Virtual Scrolling)          │  │
 │  │              TanStack Table (Comparison Tables)            │  │
+│  │              TanStack Table (Server-Side Data)             │  │
 │  └───────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
           │
@@ -113,6 +125,13 @@ This project leverages the full TanStack ecosystem for a cohesive, type-safe dev
 │  │  │  (SSR)     │  │   Data     │  │   (models.dev)     │   │  │
 │  │  └────────────┘  └────────────┘  └────────────────────┘   │  │
 │  └───────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │         Phase 3.5 Server API (src/lib/api/models.ts)       │  │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────────────┐   │  │
+│  │  │ getModels  │  │  Fuse.js   │  │   Pagination &     │   │  │
+│  │  │  ServerFn  │  │  Search    │  │   Filtering        │   │  │
+│  │  └────────────┘  └────────────┘  └────────────────────┘   │  │
+│  └───────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -120,20 +139,22 @@ This project leverages the full TanStack ecosystem for a cohesive, type-safe dev
 
 ```
 1. Initial Load (SSR + Hydration):
-   ┌──────────┐     ┌──────────────┐     ┌─────────────────┐
-   │  loader  │────▶│ createServer │────▶│ models.dev      │
-   │ (server) │     │      Fn      │     │ /api.json       │
-   └──────────┘     └──────────────┘     └─────────────────┘
-        │                                      │
-        │  JSON Response                       │
-        │  { providers: {...} }                │
-        │◀─────────────────────────────────────┘
+   ┌──────────┐     ┌──────────────────┐     ┌─────────────────┐
+   │  loader  │────▶│  getModels       │────▶│  models.dev     │
+   │ (server) │     │  (Phase 3.5 API) │     │  /api.json      │
+   └──────────┘     └──────────────────┘     └─────────────────┘
+        │                                        │
+        │  { data: [...], pagination: {...} }    │
+        │◀───────────────────────────────────────┘
         │
         ▼
    ┌──────────────────────────────────────────────┐
-   │  Server-Side Data Transformation              │
-   │  - Flatten nested provider/model structure   │
-   │  - Return hydrated HTML with data            │
+   │  Server-Side Data Processing                  │
+   │  - Load and flatten models data              │
+   │  - Apply Fuse.js fuzzy search (if query)     │
+   │  - Apply filters (providers, capabilities)   │
+   │  - Paginate results                          │
+   │  - Return { data, pagination }               │
    └──────────────────────────────────────────────┘
         │
         ▼
@@ -147,34 +168,49 @@ This project leverages the full TanStack ecosystem for a cohesive, type-safe dev
         ▼
    ┌──────────────────────────────────────────────┐
    │  UI Update                                    │
-   │  - Virtual list renders visible items         │
-   │  - TanStack Table handles filtering/sorting  │
+   │  - TanStack Table renders paginated data     │
+   │  - Shows pagination controls                 │
+   │  - Displays filter status                    │
    └──────────────────────────────────────────────┘
 
-2. User Interaction with TanStack Table:
+2. User Interaction with TanStack Table (Server-Side Mode):
    ┌──────────┐     ┌──────────────┐     ┌─────────────────┐
    │ Filter/  │────▶│ TanStack     │────▶│ URL Update      │
-   │ Sort     │     │ Table State  │     │ (pushState)     │
+   │ Sort/    │     │ Table State  │     │ (pushState)     │
+   │ Paginate │     │              │     │                 │
    └──────────┘     └──────────────┘     └─────────────────┘
-        │                                      │
-        │  TanStack Table                      │
-        │  handles filtering/sorting           │
-        │◀─────────────────────────────────────┘
+        │                     │
+        │  TanStack Table     │
+        │  manages UI state   │
+        │◀────────────────────┘
         │
+        │  onPaginationChange / onColumnFiltersChange / onGlobalFilterChange
         ▼
    ┌──────────────────────────────────────────────┐
-   │  Filter/Sort State                           │
-   │  - globalFilter (search)                     │
-   │  - columnFilters (column-specific filters)   │
-   │  - sorting (sort column + direction)         │
-   │  - columnVisibility (show/hide columns)      │
+   │  TanStack Query Trigger                       │
+   │  - queryKey includes: pagination, filters    │
+   │  - Fetch new data from Phase 3.5 API         │
+   │  - Returns { data: [...], pagination: {...}} │
    └──────────────────────────────────────────────┘
         │
         ▼
    ┌──────────────────────────────────────────────┐
-   │  Virtualizer                                 │
-   │  - Renders only visible rows                 │
-   │  - Optimizes DOM for 500+ models             │
+   │  Phase 3.5 Server API Processing              │
+   │  1. Load cached models data                   │
+   │  2. Apply Fuse.js fuzzy search (if search)    │
+   │  3. Apply column filters (providers, etc.)    │
+   │  4. Paginate filtered results                 │
+   │  5. Return page data + total count            │
+   └──────────────────────────────────────────────┘
+        │
+        ▼
+   ┌──────────────────────────────────────────────┐
+   │  Table State                                  │
+   │  - pagination (pageIndex, pageSize)           │
+   │  - globalFilter (search query)                │
+   │  - columnFilters (provider, reasoning, etc.)  │
+   │  - sorting (sort column + direction)          │
+   │  - columnVisibility (show/hide columns)       │
    └──────────────────────────────────────────────┘
 ```
 
@@ -289,9 +325,59 @@ export const fetchModels = createServerFn({ method: 'GET' }).handler(
     return response.json() as Promise<ModelsApiResponse>
   },
 )
+
+**Phase 3.5 Server API (src/lib/api/models.ts):**
+
+For server-side pagination, filtering, and fuzzy search, the project implements `getModels` server function. This API provides:
+
+| Feature | Description |
+| ------- | ----------- |
+| **Pagination** | `page` (1-based) and `limit` parameters |
+| **Fuzzy Search** | Fuse.js integration with configurable keys and thresholds |
+| **Filtering** | Provider filter, reasoning, toolCall, structuredOutput |
+| **Caching** | In-memory cache with 24-hour TTL |
+| **Response** | `{ data: FlattenedModel[], pagination: {...} }` |
+
+```typescript
+// src/lib/api/models.ts
+export const getModels = createServerFn({ method: 'GET' })
+  .inputValidator(GetModelsSchema)
+  .handler(async ({ data }) => {
+    // 1. Load models (cached or fresh from models.dev)
+    const allModels = await loadModelsData()
+
+    // 2. Apply search (Fuse.js fuzzy search)
+    const filteredModels = applyFilters(allModels, data)
+
+    // 3. Apply pagination
+    const { paginated, meta } = applyPagination(filteredModels, data.page, data.limit)
+
+    return { data: paginated, pagination: meta }
+  })
+
+// Query options for TanStack Query
+export const modelsQueryOptions = (params: GetModelsInput) =>
+  queryOptions({
+    queryKey: ['models', params],
+    queryFn: () => getModels({ data: params }),
+    staleTime: 24 * 60 * 60 * 1000,
+  })
 ```
 
-**Using Existing QueryClient:**
+**Benefits of Phase 3.5 Server API:**
+
+1. **Reduced Initial Load:** Only fetch the first page (default 50 models) instead of all 500+
+2. **Fuzzy Search:** Fuse.js provides intelligent matching beyond simple substring
+3. **Scalability:** Server handles filtering/pagination, not client memory
+4. **Consistent Performance:** Query time remains stable regardless of dataset size
+
+**Key Considerations:**
+
+1. **Pagination from API:** The API returns paginated data with metadata (total, pages, hasMore)
+2. **Background Refresh:** Cache automatically refetches after 24 hours
+3. **Debounced Search:** Search input should be debounced (300ms) to prevent excessive API calls
+4. **SSR Integration:** Use `initialData` from server loader to hydrate TanStack Query cache
+5. **Error Handling:** Graceful degradation with retry logic and error boundaries
 
 ```typescript
 // src/routes/__root.tsx
@@ -318,11 +404,12 @@ function App() {
 
 **Key Considerations:**
 
-1. **Single Fetch, No Pagination:** The API returns all data at once. Fetch once and cache for 24 hours
+1. **Pagination from API:** Phase 3.5 server API provides paginated data with configurable page size (default 50)
 2. **Background Refresh:** Data automatically refetches when cache expires (when user returns to app after 24h)
 3. **Error Handling:** Graceful degradation with retry logic and error boundaries
 4. **Loading States:** Skeleton screens during initial fetch, instant loads after cache
 5. **SSR Integration:** Use `initialData` from server loader to hydrate TanStack Query cache
+6. **Debouncing:** Search input should be debounced (300ms) to prevent excessive API calls
 
 ### 3.2 Data Transformation
 
@@ -397,29 +484,79 @@ export function flattenModelsData(response: ApiResponse): FlattenedModel[] {
 
 ### 3.3 Search Indexing
 
-Use TanStack Table's built-in filtering instead of Fuse.js for simpler search:
+**Server-Side Fuzzy Search with Fuse.js:**
+
+The application uses **Fuse.js on the server** for fuzzy search, integrated with TanStack Table's `globalFilter` for UI state management. This provides intelligent, typo-tolerant search while keeping the search logic on the server.
 
 ```typescript
-// TanStack Table handles search via globalFilter - no Fuse.js needed
+// src/lib/api/models.ts
+function getFuseInstance(models: Array<FlattenedModel>): Fuse<FlattenedModel> {
+  return new Fuse(models, {
+    keys: [
+      { name: 'modelName', weight: 2.0 },
+      { name: 'providerName', weight: 1.5 },
+      { name: 'modelFamily', weight: 1.0 },
+    ],
+    includeMatches: false,
+    includeScore: false,
+    ignoreLocation: true,
+    threshold: 0.3, // Lower = stricter matching
+    isCaseSensitive: false,
+    minMatchCharLength: 2,
+  })
+}
+
+function applySearchFilter(
+  models: Array<FlattenedModel>,
+  searchQuery: string,
+): Array<FlattenedModel> {
+  if (!searchQuery.trim()) return models
+
+  const fuse = getFuseInstance(models)
+  const results = fuse.search(searchQuery)
+
+  return results.map((result) => result.item)
+}
+```
+
+**TanStack Table Integration (UI Layer):**
+
+TanStack Table manages the global filter state, which is synced to the server API:
+
+```typescript
+// TanStack Table manages globalFilter state (UI layer)
 const [globalFilter, setGlobalFilter] = useState('')
 
 const table = useReactTable({
-  data: models,
+  data: models, // Server returns filtered data
   columns,
   getCoreRowModel: getCoreRowModel(),
   state: {
     globalFilter,
   },
   onGlobalFilterChange: setGlobalFilter,
-  // TanStack Table handles filtering automatically!
+  manualFiltering: true, // Server handles actual filtering
 })
 ```
 
 **Search Configuration:**
 
-- Use TanStack Table's built-in `globalFilter` for text search
-- No fuzzy search - exact substring matching on all visible columns
-- Debounce search input to prevent excessive re-renders
+| Setting         | Value                                             | Purpose                    |
+| --------------- | ------------------------------------------------- | -------------------------- |
+| **Search Keys** | modelName (2.0), providerName (1.5), family (1.0) | Weighted relevance         |
+| **Threshold**   | 0.3                                               | Fuzzy matching tolerance   |
+| **Min Match**   | 2 characters                                      | Prevents short-input noise |
+| **Debounce**    | 300ms                                             | Reduces API calls          |
+
+**Flow: TanStack Table → TanStack Query → Phase 3.5 API → Fuse.js**
+
+1. User types in search input
+2. TanStack Table updates `globalFilter` state
+3. Debounced value triggers TanStack Query refetch
+4. Query passes search term to Phase 3.5 API
+5. Server runs Fuse.js search on full dataset
+6. Server returns paginated results
+7. TanStack Table renders filtered data
 
 ### 3.4 State Management Approach
 
@@ -432,6 +569,7 @@ This project uses **URL State as the authoritative source of truth** for all fil
 | Search query       | URL param        | `?search=gpt`                 | `?search=gpt-4`             |
 | Provider filters   | URL param        | `?providers=openai,anthropic` | `?providers=openai`         |
 | Capability filters | URL param        | `?reasoning=true`             | `?reasoning=true`           |
+| Pagination         | URL param        | `?page=2&limit=50`            | `?page=1&limit=50`          |
 | Sort order         | URL param        | `?sort=cost&order=desc`       | `?sort=modelName&order=asc` |
 | Column visibility  | URL param        | `?cols=provider,model`        | `?cols=provider,model,cost` |
 
@@ -442,6 +580,30 @@ This project uses **URL State as the authoritative source of truth** for all fil
 - **No sync issues:** Single source of truth for all state
 - **SEO friendly:** Search engines can index filtered views
 - **No localStorage needed:** Works incognito/private browsing
+- **Server-Side Integration:** URL params sync to TanStack Query queryKey
+
+**Implementation with Server-Side Pagination:**
+
+```typescript
+// State syncs to URL and TanStack Query
+const [pagination, setPagination] = useState<PaginationState>({
+  pageIndex: 0,
+  pageSize: 50,
+})
+
+// URL state + server-side pagination
+const { data } = useQuery({
+  queryKey: ['models', search, providers, reasoning, pagination],
+  queryFn: () =>
+    getModels({
+      page: pagination.pageIndex + 1, // API uses 1-based
+      limit: pagination.pageSize,
+      search: search,
+      providers: providers,
+      reasoning: reasoning,
+    }),
+})
+```
 
 **Implementation:**
 
@@ -1092,32 +1254,174 @@ const table = useReactTable({
 **Virtual Table vs Card List Decision:**
 
 - **Virtual Table** is preferred for this use case because:
-  - All data is loaded upfront (no pagination from API)
+  - Server-side pagination reduces initial load (only 50 models per page)
   - Tabular data is easier to scan and compare
   - Built-in column sorting and visibility features
   - Better keyboard navigation for accessibility
   - Consistent row height simplifies virtualization
+  - TanStack Table's manual modes work seamlessly with virtualization
+
+### 4.1.1 Server-Side Pagination, Search, and Filtering
+
+This project uses **server-side operations** for optimal performance with large datasets. TanStack Table's `manualPagination` and `manualFiltering` modes delegate data processing to the server while maintaining TanStack Table's excellent UI state management.
+
+**Architecture Overview:**
+
+```
+┌─────────────────────────────────────────────────┐
+│           TanStack Table UI Layer               │
+│  - Pagination controls                         │
+│  - Filter inputs (global & column)             │
+│  - State: pagination, globalFilter, columnFilters │
+└─────────────────────┬───────────────────────────┘
+                      │ onXChange callbacks
+                      ▼
+┌─────────────────────────────────────────────────┐
+│          React State (useState)                │
+│  - Owned by component, controlled by table     │
+└─────────────────────┬───────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────┐
+│         TanStack Query (useQuery)              │
+│  - queryKey: ['models', pagination, filters]   │
+│  - Detects state changes, triggers fetch       │
+└─────────────────────┬───────────────────────────┘
+                      │ API Request
+                      ▼
+┌─────────────────────────────────────────────────┐
+│        Phase 3.5 Server API                   │
+│  - Accepts: page, pageSize, filters, search  │
+│  - Fuse.js fuzzy search                       │
+│  - Returns: { data: Model[], pagination: {...}} │
+└─────────────────────────────────────────────────┘
+```
+
+**Complete Server-Side Integration Example:**
+
+```typescript
+import {
+  useReactTable,
+  getCoreRowModel,
+  ColumnDef,
+  type PaginationState,
+  type ColumnFiltersState,
+  type GlobalFilterState,
+} from '@tanstack/react-table'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { modelsQueryOptions } from '@/lib/api/models'
+
+// 1. External state controlled by TanStack Table
+const [pagination, setPagination] = useState<PaginationState>({
+  pageIndex: 0,
+  pageSize: 50,
+})
+const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+const [globalFilter, setGlobalFilter] = useState<GlobalFilterState>('')
+
+// 2. TanStack Query fetches from Phase 3.5 API
+const dataQuery = useQuery({
+  ...modelsQueryOptions({
+    page: pagination.pageIndex + 1, // API uses 1-based indexing
+    limit: pagination.pageSize,
+    search: globalFilter,
+    providers: columnFilters
+      .find((f) => f.id === 'providerName')
+      ?.value?.map(String) ?? [],
+  }),
+  placeholderData: keepPreviousData,
+})
+
+// 3. TanStack Table configured for server-side operations
+const table = useReactTable({
+  data: dataQuery.data?.data ?? [],
+  columns: modelColumns,
+  getCoreRowModel: getCoreRowModel(),
+
+  // Server-side pagination
+  manualPagination: true,
+  rowCount: dataQuery.data?.pagination.total,
+  state: { pagination },
+  onPaginationChange: setPagination,
+
+  // Server-side filtering
+  manualFiltering: true,
+  state: { columnFilters, globalFilter },
+  onColumnFiltersChange: setColumnFilters,
+  onGlobalFilterChange: setGlobalFilter,
+})
+
+// 4. Render table with pagination controls
+return (
+  <div>
+    <SearchBar value={globalFilter} onChange={setGlobalFilter} />
+    <table>...</table>
+    <div className="pagination">
+      <button
+        onClick={() => table.previousPage()}
+        disabled={!table.getCanPreviousPage()}
+      >
+        Previous
+      </button>
+      <span>
+        Page {table.getState().pagination.pageIndex + 1} of{' '}
+        {table.getPageCount()}
+      </span>
+      <button
+        onClick={() => table.nextPage()}
+        disabled={!table.getCanNextPage()}
+      >
+        Next
+      </button>
+    </div>
+  </div>
+)
+```
+
+**Key Configuration Options:**
+
+| Option                  | Purpose                         | Required for Server-Side |
+| ----------------------- | ------------------------------- | ------------------------ |
+| `manualPagination`      | Disables client-side pagination | Yes                      |
+| `manualFiltering`       | Disables client-side filtering  | Yes                      |
+| `rowCount`              | Total row count from server     | Yes (for pagination)     |
+| `state.pagination`      | External pagination state       | Yes                      |
+| `onPaginationChange`    | Callback for pagination changes | Yes                      |
+| `state.columnFilters`   | External filter state           | Yes                      |
+| `onColumnFiltersChange` | Callback for filter changes     | Yes                      |
+| `state.globalFilter`    | External search state           | Yes                      |
+| `onGlobalFilterChange`  | Callback for search changes     | Yes                      |
+
+**Benefits of Server-Side Operations:**
+
+1. **Reduced Initial Load:** Only fetch first page (50 models) instead of all 500+
+2. **Consistent Performance:** Query time stable regardless of dataset size
+3. **Memory Efficient:** Server handles filtering, not client memory
+4. **Scalable:** Works with any dataset size
+5. **Fuzzy Search:** Fuse.js provides intelligent matching on server
+
+**Reference:** See `docs/research/phase5-server-side-tanstack-table.md` for detailed patterns and examples.
 
 ### 4.2 Filtering with TanStack Table
 
-TanStack Table provides built-in filtering capabilities that handle filtering logic automatically. Instead of manual filter functions, we use TanStack Table's `filterFn` system.
+TanStack Table provides built-in filtering capabilities for UI state management. With server-side architecture, we use TanStack Table's `filterFn` system for UI while delegating actual filtering to the Phase 3.5 API.
 
-**Filter Integration:**
+**Server-Side Filtering Pattern:**
 
 ```typescript
-// TanStack Table handles filtering automatically via columnFilters state
+// TanStack Table manages filter state, server handles actual filtering
 const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
 const table = useReactTable({
-  data: models,
+  data: models, // Server returns pre-filtered data
   columns: modelColumns,
   getCoreRowModel: getCoreRowModel(),
+  manualFiltering: true, // Server-side filtering
   state: {
     columnFilters,
-  },
-  onColumnFiltersChange: setColumnFilters,
-})
-```
+   },
+   onColumnFiltersChange: setColumnFilters,
+ })
 
 **Custom Filter Functions:**
 
@@ -1141,6 +1445,49 @@ TanStack Table supports various built-in filter functions:
   accessorKey: 'providerName',
   header: 'Provider',
   filterFn: 'includesString', // Substring matching
+}
+```
+
+**Server-Side Filtering with Phase 3.5 API:**
+
+Filters are applied on the server via the Phase 3.5 API. TanStack Table manages the filter UI state while the actual filtering happens on the server.
+
+```typescript
+// Server-side filter application (src/lib/api/models.ts)
+function applyFilters(
+  models: Array<FlattenedModel>,
+  input: GetModelsInput,
+): Array<FlattenedModel> {
+  let filtered = models
+
+  // Apply search filter (Fuse.js)
+  if (input.search.trim()) {
+    filtered = applySearchFilter(filtered, input.search)
+  }
+
+  // Apply provider filter
+  if (input.providers.length > 0) {
+    filtered = filtered.filter((model) =>
+      input.providers.includes(model.providerName),
+    )
+  }
+
+  // Apply capability filters
+  if (input.reasoning !== undefined) {
+    filtered = filtered.filter((model) => model.reasoning === input.reasoning)
+  }
+
+  if (input.toolCall !== undefined) {
+    filtered = filtered.filter((model) => model.toolCall === input.toolCall)
+  }
+
+  if (input.structuredOutput !== undefined) {
+    filtered = filtered.filter(
+      (model) => model.structuredOutput === input.structuredOutput,
+    )
+  }
+
+  return filtered
 }
 ```
 
@@ -1217,7 +1564,20 @@ All filter state is persisted in URL for shareability:
 
 **Search with TanStack Table's globalFilter:**
 
-TanStack Table provides built-in global filtering that automatically searches across all columns. This replaces the need for Fuse.js fuzzy search with simpler, more efficient filtering.
+TanStack Table provides built-in global filtering for UI state management. The actual fuzzy search is handled server-side via the Phase 3.5 API with Fuse.js, providing intelligent, typo-tolerant search results.
+
+**Search Flow:**
+
+1. User types in SearchBar component
+2. Input is debounced (300ms) to reduce API calls
+3. Debounced value synced to URL (`?search=query`)
+4. TanStack Query detects queryKey change
+5. API receives search parameter
+6. Server runs Fuse.js fuzzy search on full dataset
+7. Server returns paginated filtered results
+8. TanStack Table renders filtered data
+
+**TanStack Table Integration (Server-Side Mode):**
 
 ```typescript
 // src/components/SearchBar/SearchBar.tsx
@@ -1318,34 +1678,33 @@ export function SearchBar({
 }
 ```
 
-**TanStack Table Integration:**
+**TanStack Table Integration (Server-Side Mode):**
 
 ```typescript
-// Search is handled via TanStack Table's built-in globalFilter
+// TanStack Table manages globalFilter state, server handles fuzzy search
 const [globalFilter, setGlobalFilter] = useState('')
 
 const table = useReactTable({
-  data: models,
+  data: models, // Server returns filtered data
   columns,
   getCoreRowModel: getCoreRowModel(),
+  manualFiltering: true, // Server-side filtering
   state: {
     globalFilter,
   },
   onGlobalFilterChange: setGlobalFilter,
-  // TanStack Table handles filtering automatically!
 })
 ```
 
 **Search Scope:**
 
-With TanStack Table's globalFilter, the search automatically includes all visible columns. This means users can search across:
+With server-side Fuse.js fuzzy search, the search intelligently matches against configured keys. Fuse.js configuration prioritizes relevance:
 
-- `modelName` - Display name of the model
-- `providerName` - Name of the provider
-- `family` - Model family
-- `providerId` - Provider identifier
-- `modelId` - Model identifier
-- And any other text-based columns
+| Key            | Weight | Purpose                                       |
+| -------------- | ------ | --------------------------------------------- |
+| `modelName`    | 2.0    | Highest priority - model names most important |
+| `providerName` | 1.5    | Provider names secondary                      |
+| `family`       | 1.0    | Model family lower priority                   |
 
 **No Search Across:**
 
@@ -1364,7 +1723,7 @@ Search state is persisted in URL for shareability:
 
 **Debouncing:**
 
-Search input is debounced (300ms) to prevent excessive re-renders while the user types. This ensures the table only updates after the user pauses their input.
+Search input is debounced (300ms) to prevent excessive API calls. The debounced value triggers TanStack Query refetch, which calls the Phase 3.5 API with the search parameter.
 
 ### 4.4 Comparison Mode
 
@@ -4354,3 +4713,7 @@ The server function fetches data from models.dev API and returns the same struct
 ---
 
 _End of Technical Specification Document_
+
+```
+
+```
