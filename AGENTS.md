@@ -38,7 +38,7 @@ When you have zero context about this project, just read `docs/spec/models-explo
 - **exa**: General web searches and content extraction
 - **exa**: Search and get relevant code snippets, examples, and documentation from open source libraries, GitHub repositories, and programming frameworks.
 - **playwright**: UI testing (when applicable)
-- **web-reader**: Main tool to fetch web content and extract relevant information.
+- **web-reader**: Primary tool to fetch web content and extract relevant information.
 - **web-search-prime**: Web searches
 - **webfetch**: Secondary tool to fetch web content and extract relevant information, if `web-reader` fails.
 
