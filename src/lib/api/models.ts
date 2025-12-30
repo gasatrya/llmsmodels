@@ -22,10 +22,6 @@ const GetModelsSchema = z.object({
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().max(100).default(50),
   search: z.string().optional().default(''),
-  providers: z.array(z.string()).optional().default([]),
-  reasoning: z.boolean().optional(),
-  toolCall: z.boolean().optional(),
-  structuredOutput: z.boolean().optional(),
 })
 
 export type GetModelsInput = z.infer<typeof GetModelsSchema>
@@ -44,7 +40,6 @@ export interface PaginationMeta {
 export interface GetModelsResponse {
   data: Array<FlattenedModel>
   pagination: PaginationMeta
-  availableProviders: Array<{ id: string; name: string }>
 }
 
 // ============================================
@@ -134,38 +129,12 @@ function applyFilters(
   models: Array<FlattenedModel>,
   input: GetModelsInput,
 ): Array<FlattenedModel> {
-  let filtered = models
-
   // Apply search filter
   if (input.search.trim()) {
-    filtered = applySearchFilter(filtered, input.search)
+    return applySearchFilter(models, input.search)
   }
 
-  // Apply provider filter
-  if (input.providers.length > 0) {
-    filtered = filtered.filter((model) =>
-      input.providers.includes(model.providerName),
-    )
-  }
-
-  // Apply reasoning filter
-  if (input.reasoning !== undefined) {
-    filtered = filtered.filter((model) => model.reasoning === input.reasoning)
-  }
-
-  // Apply toolCall filter
-  if (input.toolCall !== undefined) {
-    filtered = filtered.filter((model) => model.toolCall === input.toolCall)
-  }
-
-  // Apply structuredOutput filter
-  if (input.structuredOutput !== undefined) {
-    filtered = filtered.filter(
-      (model) => model.structuredOutput === input.structuredOutput,
-    )
-  }
-
-  return filtered
+  return models
 }
 
 // ============================================
@@ -217,18 +186,6 @@ export const getModels = createServerFn({ method: 'GET' })
       // Apply filters
       const filteredModels = applyFilters(allModels, data)
 
-      // Extract all unique providers from FILTERED dataset (BEFORE pagination)
-      const providersMap = new Map<string, { id: string; name: string }>()
-      filteredModels.forEach((model) => {
-        const id = model.providerName
-        if (!providersMap.has(id)) {
-          providersMap.set(id, { id, name: model.providerName })
-        }
-      })
-      const availableProviders = Array.from(providersMap.values()).sort(
-        (a, b) => a.name.localeCompare(b.name),
-      )
-
       // Apply pagination
       const { paginated, meta } = applyPagination(
         filteredModels,
@@ -239,7 +196,6 @@ export const getModels = createServerFn({ method: 'GET' })
       return {
         data: paginated,
         pagination: meta,
-        availableProviders,
       }
     } catch (error) {
       console.error('[getModels Error]:', {
@@ -261,23 +217,10 @@ export const modelsQueryOptions = (
     page: 1,
     limit: 50,
     search: '',
-    providers: [],
-    reasoning: undefined,
-    toolCall: undefined,
-    structuredOutput: undefined,
   },
 ) =>
   queryOptions({
-    queryKey: [
-      'models',
-      params.page,
-      params.limit,
-      params.search,
-      params.providers,
-      params.reasoning,
-      params.toolCall,
-      params.structuredOutput,
-    ],
+    queryKey: ['models', params.page, params.limit, params.search],
     queryFn: () => getModels({ data: params }),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
   })
