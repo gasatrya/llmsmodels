@@ -22,9 +22,9 @@ export function flattenModelsData(
 
         // Capabilities (boolean flags)
         selected: false,
-        toolCall: model.toolCall,
+        toolCall: model.tool_call,
         reasoning: model.reasoning,
-        structuredOutput: model.structuredOutput,
+        structuredOutput: model.structured_output,
         temperature: model.temperature,
 
         // Modalities
@@ -36,10 +36,10 @@ export function flattenModelsData(
         inputCost: model.cost?.input,
         outputCost: model.cost?.output,
         reasoningCost: model.cost?.reasoning,
-        cacheReadCost: model.cost?.cacheRead,
-        cacheWriteCost: model.cost?.cacheWrite,
-        audioInputCost: model.cost?.inputAudio,
-        audioOutputCost: model.cost?.outputAudio,
+        cacheReadCost: model.cost?.cache_read,
+        cacheWriteCost: model.cost?.cache_write,
+        audioInputCost: model.cost?.input_audio,
+        audioOutputCost: model.cost?.output_audio,
 
         // Limits
         contextLimit: model.limit?.context ?? 0,
@@ -47,12 +47,12 @@ export function flattenModelsData(
         outputLimit: model.limit?.output ?? 0,
 
         // Access
-        weights: model.openWeights ? 'Open' : 'Closed',
+        weights: model.open_weights ? 'Open' : 'Closed',
         knowledge: model.knowledge ?? undefined,
 
         // Dates
-        releaseDate: model.releaseDate,
-        lastUpdated: model.lastUpdated,
+        releaseDate: model.release_date,
+        lastUpdated: model.last_updated,
       })
     }
   }

@@ -44,6 +44,7 @@ export interface PaginationMeta {
 export interface GetModelsResponse {
   data: Array<FlattenedModel>
   pagination: PaginationMeta
+  availableProviders: Array<{ id: string; name: string }>
 }
 
 // ============================================
@@ -216,6 +217,18 @@ export const getModels = createServerFn({ method: 'GET' })
       // Apply filters
       const filteredModels = applyFilters(allModels, data)
 
+      // Extract all unique providers from FILTERED dataset (BEFORE pagination)
+      const providersMap = new Map<string, { id: string; name: string }>()
+      filteredModels.forEach((model) => {
+        const id = model.providerName
+        if (!providersMap.has(id)) {
+          providersMap.set(id, { id, name: model.providerName })
+        }
+      })
+      const availableProviders = Array.from(providersMap.values()).sort(
+        (a, b) => a.name.localeCompare(b.name),
+      )
+
       // Apply pagination
       const { paginated, meta } = applyPagination(
         filteredModels,
@@ -226,6 +239,7 @@ export const getModels = createServerFn({ method: 'GET' })
       return {
         data: paginated,
         pagination: meta,
+        availableProviders,
       }
     } catch (error) {
       console.error('[getModels Error]:', {

@@ -20,10 +20,10 @@ export interface Cost {
   input: number
   output: number
   reasoning?: number
-  cacheRead?: number
-  cacheWrite?: number
-  inputAudio?: number
-  outputAudio?: number
+  cache_read?: number
+  cache_write?: number
+  input_audio?: number
+  output_audio?: number
 }
 
 /**
@@ -51,14 +51,14 @@ export interface ModelData {
   id: string
   name: string
   family: string
-  toolCall: boolean
+  tool_call: boolean
   reasoning: boolean
-  structuredOutput?: boolean
+  structured_output?: boolean
   temperature?: boolean
   knowledge?: string
-  releaseDate: string
-  lastUpdated: string
-  openWeights: boolean
+  release_date: string
+  last_updated: string
+  open_weights: boolean
   status?: 'alpha' | 'beta' | 'deprecated'
   cost?: Cost
   limit?: Limit

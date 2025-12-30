@@ -34,16 +34,14 @@ Leverate built-in tools if you have the necessary permissions.
 ### Specialists / Subagents
 
 - **researcher**: For gathering documentation, examples, or best practices
-- **builder**: For implementing features, fixing bugs, or making code changes
-- **reviewer**: Review code before moving to QA
 - **qa-specialist**: Audit code, verifies file structures, and creates/runs tests
-- **debugger**: When encountering bugs, issues, runtime errors or logical bugs
 - **technical-writer**: For adding, updating, or fixing documentation
-- **maintenance-specialist**: Handles debt reduction, log removal, formatting, and file deletion.
 
 ### Skills
 
-1. **git-committer**: Commit changes to the repository
+- **git-commit**: Commit changes to the repository
+- **code-review**: Static analysis focusing on bug detection, compliance, security, and scalability.
+- **senior-builder**: To fix complex issues/bugs/features that standard build agents fail.
 
 ### MCP Tool Usage Guidelines
 

@@ -519,32 +519,24 @@ function IndexPage() {
 
   // Update URL when filters change
   useEffect(() => {
-    navigate({
-      search: {
-        ...search,
-        providers: filters.providers,
-        reasoning: filters.capabilities.reasoning,
-        toolCall: filters.capabilities.toolCall,
-        structuredOutput: filters.capabilities.structuredOutput,
-      },
-    })
+    const searchParams: Record<string, unknown> = {
+      ...search,
+      providers: filters.providers.length > 0 ? filters.providers : undefined,
+      reasoning: filters.capabilities.reasoning === true ? true : undefined,
+      toolCall: filters.capabilities.toolCall === true ? true : undefined,
+      structuredOutput:
+        filters.capabilities.structuredOutput === true ? true : undefined,
+    }
+
+    navigate({ search: searchParams })
   }, [filters, navigate, search])
 
   const selectedRows = table.getSelectedRowModel().rows
   const totalCount = modelsQuery.data.pagination.total
 
-  // Get unique providers from models data
+  // Get unique providers from API response (all available providers from filtered dataset)
   const uniqueProviders = useMemo(() => {
-    const providersMap = new Map<string, { id: string; name: string }>()
-    modelsQuery.data.data.forEach((model) => {
-      const id = model.providerName
-      if (!providersMap.has(id)) {
-        providersMap.set(id, { id, name: model.providerName })
-      }
-    })
-    return Array.from(providersMap.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    )
+    return modelsQuery.data.availableProviders
   }, [modelsQuery.data])
 
   if (modelsQuery.isError) {
