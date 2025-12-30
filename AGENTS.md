@@ -36,17 +36,12 @@ Leverate built-in tools if you have the necessary permissions.
 
 ### Specialists / Subagents
 
+- **github-flow**: creating branches for new features or bug fixes, making commits with clear and concise messages, opening pull requests for code review, and merging changes after approval.
 - **builder**: To implement the code
 - **the-researcher**: For gathering documentation, examples, or best practices
 - **qa-engineer**: To perform quality assurance (QA) tasks, such as testing software, identifying defects, or verifying functionality.
 - **code-reviewer**: To review code and provide feedback.
 - **technical-writer**: For adding, updating, or fixing documentation
-- **git-committer**: To commit changes to the repository.
-
-### Skills
-
-- **git-commit**: Commit changes to the repository
-- **senior-builder**: To fix complex issues/bugs/features that standard builder agents fail.
 
 ## Tech Stack
 
