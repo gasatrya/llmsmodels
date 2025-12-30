@@ -6,7 +6,7 @@ Context for agentic coding systems working on this project.
 
 When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
 
-## Specialist Agent Usage
+## Subagents and Skills
 
 ### When to Invoke Specialists
 
@@ -18,7 +18,6 @@ When you have zero context about this project, just read `docs/spec/models-explo
 - **qa-specialist**: Audit code, verifies file structures, and runs tests
 - **debugger**: When encountering bugs, issues, runtime errors or logical bugs
 - **researcher**: For gathering documentation, examples, or best practices
-- **git-committer**: To commit changes with appropriate messages
 - **vitest-specialist**: For writing and maintaining tests (when tests are added)
 - **technical-writer**: For adding, updating, or fixing documentation
 - **maintenance-specialist**: Handles debt reduction, log removal, formatting, and file deletion.
@@ -35,12 +34,7 @@ When you have zero context about this project, just read `docs/spec/models-explo
 
 - **gh_grep**: Search real-world code examples from GitHub
 - **context7**: Fetch up-to-date documentation for libraries
-- **exa**: General web searches and content extraction
-- **exa**: Search and get relevant code snippets, examples, and documentation from open source libraries, GitHub repositories, and programming frameworks.
 - **playwright**: UI testing (when applicable)
-- **web-reader**: Primary tool to fetch web content and extract relevant information.
-- **web-search-prime**: Web searches
-- **webfetch**: Secondary tool to fetch web content and extract relevant information, if `web-reader` fails.
 
 ## Tech Stack
 
