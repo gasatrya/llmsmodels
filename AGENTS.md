@@ -30,25 +30,22 @@ Leverate built-in tools if you have the necessary permissions.
 - **websearch**: Search necessary information on the web.
 - **codesearch**: Search real-world codebases for relevant examples.
 - **batch**: Executes multiple independent tool calls concurrently to reduce latency.
+- **gh_grep**: Search real-world code examples from GitHub
+- **context7**: Fetch up-to-date documentation for libraries
+- **playwright**: UI testing (when applicable)
 
 ### Specialists / Subagents
 
-- **researcher**: For gathering documentation, examples, or best practices
-- **qa-specialist**: Audit code, verifies file structures, and creates/runs tests
+- **builder**: To implement the code
+- **the-researcher**: For gathering documentation, examples, or best practices
+- **qa-engineer**: To perform quality assurance (QA) tasks, such as testing software, identifying defects, or verifying functionality.
+- **code-reviewer**: To review code and provide feedback.
 - **technical-writer**: For adding, updating, or fixing documentation
 
 ### Skills
 
 - **git-commit**: Commit changes to the repository
-- **code-review**: Static analysis focusing on bug detection, compliance, security, and scalability.
-- **senior-builder**: To fix complex issues/bugs/features that standard build agents fail.
-
-### MCP Tool Usage Guidelines
-
-- **gh_grep**: Search real-world code examples from GitHub
-- **context7**: Fetch up-to-date documentation for libraries
-- **playwright**: UI testing (when applicable)
-- **tavily**: Web search and extract web content
+- **senior-builder**: To fix complex issues/bugs/features that standard builder agents fail.
 
 ## Tech Stack
 
