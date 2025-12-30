@@ -41,6 +41,7 @@ Leverate built-in tools if you have the necessary permissions.
 - **qa-engineer**: To perform quality assurance (QA) tasks, such as testing software, identifying defects, or verifying functionality.
 - **code-reviewer**: To review code and provide feedback.
 - **technical-writer**: For adding, updating, or fixing documentation
+- **git-committer**: To commit changes to the repository.
 
 ### Skills
 
