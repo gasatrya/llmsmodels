@@ -4,37 +4,52 @@ Context for agentic coding systems working on this project.
 
 ## Intro
 
-When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
+- When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
+- Never try to start dev server, dev server always running at `http://localhost:3000`
 
 ## Subagents and Skills
 
-### When to Invoke Specialists
+### Built-in Tools
 
-- **explore**: For exploring codebase and understanding its structure
-- **builder**: For implementing features, fixing bugs, or making code changes
-- **senior-builder**: Use this specialist when `builder` is unable to resolve complex issues or when the codebase requires significant refactoring.
-- **junior-builder**: For implementing small, easy, fast, and straightforward changes
-- **reviewer**: Review code before moving to QA
-- **qa-specialist**: Audit code, verifies file structures, and runs tests
-- **debugger**: When encountering bugs, issues, runtime errors or logical bugs
+Leverate built-in tools if you have the necessary permissions.
+
+- **bash**: Execute shell commands in your project environment.
+- **edit**: Modify existing files using exact string replacements.
+- **write**: Create new files or overwrite existing ones.
+- **read**: Read file contents from your codebase.
+- **grep**: Search file contents using regular expressions.
+- **glob**: Find files by pattern matching.
+- **list**: List files and directories in a given path.
+- **patch**: Apply patches to files.
+- **skill**: Load a skill (a SKILL.md file) and return its content in the conversation.
+- **task**: Launch a new agent to handle complex, multi-step tasks autonomously.
+- **todowrite**: Manage todo lists during coding sessions.
+- **todoread**: Read existing todo lists.
+- **webfetch**: Fetch web content.
+- **websearch**: Search necessary information on the web.
+- **codesearch**: Search real-world codebases for relevant examples.
+- **batch**: Executes multiple independent tool calls concurrently to reduce latency.
+
+### Specialists / Subagents
+
 - **researcher**: For gathering documentation, examples, or best practices
-- **vitest-specialist**: For writing and maintaining tests (when tests are added)
+- **builder**: For implementing features, fixing bugs, or making code changes
+- **reviewer**: Review code before moving to QA
+- **qa-specialist**: Audit code, verifies file structures, and creates/runs tests
+- **debugger**: When encountering bugs, issues, runtime errors or logical bugs
 - **technical-writer**: For adding, updating, or fixing documentation
 - **maintenance-specialist**: Handles debt reduction, log removal, formatting, and file deletion.
 
-### Workflow Guidelines
+### Skills
 
-1. **Plan**: Understand requirements and create implementation plan
-2. **Build**: Use builder agent to implement changes
-3. **Review**: Use reviewer agent to check code quality
-4. **Test**: Use QA specialist to validate functionality
-5. **Commit**: Use git committer to save changes
+1. **git-committer**: Commit changes to the repository
 
-### Tool Usage Guidelines
+### MCP Tool Usage Guidelines
 
 - **gh_grep**: Search real-world code examples from GitHub
 - **context7**: Fetch up-to-date documentation for libraries
 - **playwright**: UI testing (when applicable)
+- **tavily**: Web search and extract web content
 
 ## Tech Stack
 
