@@ -4,6 +4,7 @@ Context for agentic coding systems working on this project.
 
 ## Intro
 
+- Never ever fetch the source API directly `https://models.dev/api.json`, because it's huge amount of data, just check the sample return `docs/sample-api-models-dev.json`
 - When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
 - Never try to start dev server, dev server always running at `http://localhost:3000`
 
