@@ -3,3 +3,4 @@
  */
 
 export * from './url-state'
+export * from './column-visibility-persistence'

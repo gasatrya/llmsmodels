@@ -22,6 +22,7 @@ import type { ColumnVisibilityState } from '@/types/column-visibility'
 import type { FlattenedModel } from '@/types/models'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { getColumnVisibilityFromUrl } from '@/lib/url-state'
+import { loadDefaultColumnVisibility } from '@/lib/column-visibility-persistence'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
@@ -416,14 +417,24 @@ function IndexPage() {
     return search.search
   })
 
-  // Initialize column visibility from URL (SSR-safe using search from Route.useSearch)
+  // Initialize column visibility from URL or localStorage
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>(() => {
-      // Create URLSearchParams from search object for SSR safety
-      const params = new URLSearchParams()
+      // Priority 1: URL parameter (highest priority)
       if (search.cols) {
+        const params = new URLSearchParams()
         params.set('cols', search.cols)
+        return getColumnVisibilityFromUrl(params)
       }
+
+      // Priority 2: localStorage (second priority)
+      const saved = loadDefaultColumnVisibility()
+      if (saved) {
+        return saved
+      }
+
+      // Priority 3: Hard-coded defaults (fallback)
+      const params = new URLSearchParams()
       return getColumnVisibilityFromUrl(params)
     })
 
