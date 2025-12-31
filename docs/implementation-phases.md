@@ -464,14 +464,9 @@ Server-side pagination, search, and filtering
 - **Implementation Approach:** Built with 5 sub-phases, then refactored to pure in-memory state
 - **Final State:** Pure in-memory column visibility (no URL sync, no localStorage)
 - **Commits:** 11 commits total (5 initial + 3 refactor)
-- **QA Reports:**
-  - `docs/qa/phase7-1-types-and-constants.md` - PASS ✅
-  - `docs/qa/phase7-2-column-visibility-toggle.md` - PASS ✅
-  - `docs/qa/phase7-3-url-state-sync.md` - PASS ✅
-  - `docs/qa/phase7-4-column-visibility-persistence.md` - PASS ✅
-  - `docs/qa/phase7-5-full-integration.md` - PASS ✅
-  - `docs/qa/phase7-refactor-pure-memory-state.md` - PASS ✅ (MT-5)
+- **QA Reports:** See `docs/qa/phase7/` for detailed reports
 - **Code Review:** `docs/reviews/phase7-overall-code-review.md` - APPROVED ✅
+- **See:** `docs/reviews/phase7-summary.md` for detailed breakdown
 - **Files Created:** 5 files
   - `src/types/column-visibility.ts` - Type definitions and constants
   - `src/components/ColumnVisibilityToggle/ColumnVisibilityToggle.tsx` - UI component
