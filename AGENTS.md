@@ -2,11 +2,85 @@
 
 Context for agentic coding systems working on this project.
 
-## Intro
+## Main Rules
 
 - Never ever fetch the source API directly `https://models.dev/api.json`, because it's huge amount of data, just check the sample return `docs/sample-api-models-dev.json`
 - When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
 - Never try to start dev server, dev server always running at `http://localhost:3000`
+
+## Quality Gates
+
+Each feature must pass through these checkpoints before merging:
+
+### Gate 1: Requirements Ready ☐
+- [ ] Clear user requirements documented
+- [ ] Definition of Done specified
+- [ ] Tech constraints identified
+- [ ] Branch created via `@github-flow`
+
+### Gate 2: Design Complete ☐
+- [ ] Implementation plan created
+- [ ] Relevant files explored
+- [ ] Research documented (if needed)
+- [ ] Dependencies identified
+
+### Gate 3: Implementation Ready ☐
+- [ ] Context files provided to `@builder`
+- [ ] Technical specifications clear
+- [ ] Testing approach defined
+
+### Gate 4: Code Complete ☐
+- [ ] Code written
+- [ ] Passes linting (`npm run check`)
+- [ ] Follows project patterns
+- [ ] Self-reviewed
+
+### Gate 5: Review Complete ☐
+- [ ] `@code-reviewer` approved
+- [ ] Issues addressed
+- [ ] Changes committed
+
+### Gate 6: Testing Complete ☐
+- [ ] `@qa-specialist` verified
+- [ ] Tests pass (`npm run test`)
+- [ ] No critical bugs
+
+### Gate 7: Ready for Merge ☐
+- [ ] PR created with clear description
+- [ ] Documentation updated (if needed)
+- [ ] Approved for merge
+
+## Testing Strategy
+
+### QA Involvement Points
+
+1. **Before Implementation**: Test plan creation
+2. **During Implementation**: Component-level testing
+3. **After Implementation**: Integration testing
+4. **Before PR**: Full regression testing
+
+### Test Coverage Requirements
+
+| Scenario | Coverage |
+|----------|----------|
+| Critical paths (authentication, data loading) | 100% |
+| New features | 80%+ |
+| Bug fixes | Specific scenario tests |
+| Refactoring | Existing tests still pass |
+
+## Documentation Requirements
+
+### When Documentation is Required
+
+Document must concise and clear.
+
+| Change | Documentation Needed |
+|--------|---------------------|
+| New feature | Feature doc + API changes |
+| Bug fix | Issue resolution doc |
+| Breaking change | Migration guide |
+| New component | Component usage doc |
+| Complex logic | In-code comments + architecture doc |
 
 ## Subagents and Skills
 
@@ -38,8 +112,8 @@ Leverate built-in tools if you have the necessary permissions.
 
 - **github-flow**: creating branches for new features or bug fixes, making commits with clear and concise messages, opening pull requests for code review, and merging changes after approval.
 - **builder**: To implement the code
-- **the-researcher**: For gathering documentation, examples, or best practices
-- **qa-engineer**: To perform quality assurance (QA) tasks, such as testing software, identifying defects, or verifying functionality.
+- **researcher**: For gathering documentation, examples, or best practices
+- **qa-specialist**: To perform quality assurance (QA) tasks, such as testing software, identifying defects, or verifying functionality.
 - **code-reviewer**: To review code and provide feedback.
 - **technical-writer**: For adding, updating, or fixing documentation
 
