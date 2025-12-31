@@ -31,8 +31,8 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ## Total Progress
 
-- **Phases Completed:** 6 out of 11
-- **Progress:** ~55%
+- **Phases Completed:** 8 out of 12 (including Phase 3.5)
+- **Progress:** ~67%
 - **Current Phase:** Phase 8 - Filter Integration (pending)
 
 ---
@@ -456,263 +456,24 @@ Server-side pagination, search, and filtering
 
 **Status:** ✅ COMPLETED
 
-**Duration:** 3.5 days (broken into 5 sub-phases + refactor)
+**Duration:** 3.5 days
 
 ### Completion Notes
 
 - **Date Completed:** January 1, 2026
-- **Implementation Approach:** Built with 5 sub-phases, then refactored to pure in-memory state
-- **Final State:** Pure in-memory column visibility (no URL sync, no localStorage)
-- **Commits:** 11 commits total (5 initial + 3 refactor)
-- **QA Reports:** See `docs/qa/phase7/` for detailed reports
-- **Code Review:** `docs/reviews/phase7-overall-code-review.md` - APPROVED ✅
-- **See:** `docs/reviews/phase7-summary.md` for detailed breakdown
-- **Files Created:** 5 files
-  - `src/types/column-visibility.ts` - Type definitions and constants
-  - `src/components/ColumnVisibilityToggle/ColumnVisibilityToggle.tsx` - UI component
-  - `src/components/ColumnVisibilityToggle/index.ts` - Component exports
-- **Files Modified:** 2 files
-  - `src/routes/index.tsx` - Integrated component with pure in-memory state
-  - `src/types/index.ts` - Added column visibility type exports
-- **Files Deleted (refactor):** 2 files
-  - `src/lib/url-state.ts` - Removed in refactor (MT-6)
-  - `src/lib/column-visibility-persistence.ts` - Removed in refactor (MT-6)
-- **Key Achievements:**
-  - ColumnVisibilityToggle component with 27 columns
+- **Implementation:** Column Visibility feature with pure in-memory state
+- **Key Features:**
+  - ColumnVisibilityToggle component (27 columns)
   - "Show All" and "Reset to Default" buttons
-  - Pure in-memory state (no SSR/hydration issues)
-  - Clean URLs (no long `?cols=` parameter)
-  - Seamless integration with Search and Pagination
-  - No blinking/flash on page load
-  - Full TypeScript type safety
-  - ARIA labels for accessibility
-- **Architecture Decision:** Refactored to pure in-memory state to eliminate:
-  - URL sync complexity and long URLs
-  - localStorage SSR/hydration issues (blinking)
-  - Back button history pollution
-- **Sub-Phases:**
-  - 7.1: Types & Constants ✅ COMPLETED (0.5 day)
-  - 7.2: ColumnVisibilityToggle Component ✅ COMPLETED (1 day)
-  - 7.3: URL State Management ✅ COMPLETED (0.5 day)
-  - 7.4: localStorage Persistence ✅ COMPLETED (0.5 day)
-  - 7.5: Full Integration & Testing ✅ COMPLETED (1 day)
-- **Refactor Micro-tasks:**
-  - MT-1: Remove 'cols' parameter ✅ COMPLETED
-  - MT-2: Simplify state initialization ✅ COMPLETED
-  - MT-3: Remove URL sync useEffect ✅ COMPLETED
-  - MT-4: Remove localStorage persistence ✅ COMPLETED
-  - MT-5: Test functionality ✅ COMPLETED
-  - MT-6: Clean up unused files ✅ COMPLETED
-
----
-
-### Sub-Phase 7.1: Type Definitions & Constants (0.5 day)
-
-**Status:** ⏳ PENDING
-
-**Objective:** Define all types and constants needed for column visibility
-
-**Tasks:**
-
-1. Create `src/types/column-visibility.ts`:
-   - Define `ColumnVisibilityState` interface (Record<string, boolean>)
-   - Define `ColumnVisibilityOptions` interface
-   - Export constants:
-     - `DEFAULT_VISIBLE_COLUMNS` array (6 default columns)
-     - `ALL_COLUMNS` array with id and label for all 27 columns
-     - `COLUMN_VISIBILITY_STORAGE_KEY` constant
-
-2. Update `src/types/index.ts`:
-   - Add export for new column-visibility types
-
-**Deliverables:**
-
-- `src/types/column-visibility.ts` with all type definitions
-- Updated `src/types/index.ts` with new exports
-- All 27 columns defined with correct IDs and labels
-
-**Definition of Done:**
-
-- TypeScript compiles without errors
-- All column IDs match the actual column definitions in `src/routes/index.tsx`
-- Types exported from `@/types` module
-
----
-
-### Sub-Phase 7.2: ColumnVisibilityToggle Component (1 day)
-
-**Status:** ⏳ PENDING
-
-**Objective:** Create the UI component for toggling column visibility
-
-**Tasks:**
-
-1. Create `src/components/ColumnVisibilityToggle/ColumnVisibilityToggle.tsx`:
-   - Dropdown component with button trigger
-   - List of all 27 columns with checkboxes
-   - "Show All" button to enable all columns
-   - "Reset to Default" button to restore 6 default columns
-   - Close on backdrop click
-   - ARIA labels for accessibility
-   - Use Lucide icons (Settings/Columns icon)
-
-2. Create `src/components/ColumnVisibilityToggle/index.ts`:
-   - Export ColumnVisibilityToggle component
-
-**Deliverables:**
-
-- Working ColumnVisibilityToggle component
-- Proper TypeScript types
-- ARIA attributes for accessibility
-- Follows SearchBar patterns (similar structure)
-
-**Definition of Done:**
-
-- Component renders correctly
-- All 27 columns display with checkboxes
-- "Show All" and "Reset" buttons work
-- Dropdown opens/closes properly
-- No console errors
-- Passes linting
-
----
-
-### Sub-Phase 7.3: URL State Management (0.5 day)
-
-**Status:** ⏳ PENDING
-
-**Objective:** Implement URL synchronization for column visibility
-
-**Tasks:**
-
-1. Create `src/lib/url-state.ts` (or add to existing):
-   - `getColumnVisibilityFromUrl(params: URLSearchParams): ColumnVisibilityState`
-   - `getUrlFromColumnVisibility(visibility: ColumnVisibilityState): string`
-   - Handle comma-separated column IDs in `?cols=` parameter
-   - Return defaults when URL param is empty
-
-2. Update `src/routes/index.tsx`:
-   - Add `cols` to `indexSearchSchema` validation
-   - Parse column visibility from URL on initial load
-   - Initialize TanStack Table's `columnVisibility` state from URL
-
-**URL Format:**
-
-```
-?cols=select,providerName,modelName,toolCall,inputCost,contextLimit
-```
-
-**Deliverables:**
-
-- URL state parsing/syncing functions
-- Updated index.tsx with URL-based column visibility
-- TypeScript types for URL params
-
-**Definition of Done:**
-
-- Column visibility loads from URL correctly
-- URL updates when columns are toggled
-- Invalid column IDs in URL are handled gracefully
-- Defaults apply when URL param is missing
-
----
-
-### Sub-Phase 7.4: localStorage Persistence (0.5 day)
-
-**Status:** ⏳ PENDING
-
-**Objective:** Add localStorage for default column visibility preferences
-
-**Tasks:**
-
-1. Create persistence utility in `src/lib/column-visibility-persistence.ts`:
-   - `saveDefaultColumnVisibility(visibility: ColumnVisibilityState): void`
-   - `loadDefaultColumnVisibility(): ColumnVisibilityState | null`
-   - Check for `typeof window === 'undefined'` for SSR safety
-
-2. Update `src/routes/index.tsx`:
-   - Load from localStorage when URL has no column visibility
-   - Save to localStorage when user changes visibility (no URL param present)
-   - Priority: URL > localStorage > hard-coded defaults
-
-**Deliverables:**
-
-- localStorage utility functions
-- Integration with URL state logic
-- SSR-safe implementation
-
-**Definition of Done:**
-
-- Column visibility persists across page reloads (when no URL param)
-- localStorage saves when user changes visibility
-- Doesn't cause SSR hydration mismatch
-- Works correctly in all browsers
-
----
-
-### Sub-Phase 7.5: Full Integration & Testing (1 day)
-
-**Status:** ⏳ PENDING
-
-**Objective:** Integrate everything into the main page and test thoroughly
-
-**Tasks:**
-
-1. Update `src/routes/index.tsx`:
-   - Import ColumnVisibilityToggle component
-   - Add `columnVisibility` state management (with useState or TanStack Table's built-in)
-   - Add `getColumnVisibilityModel` to useReactTable configuration
-   - Add useEffect to sync column visibility to URL
-   - Add ColumnVisibilityToggle component to UI (near SearchBar)
-   - Update Route.useSearch() to handle cols parameter
-
-2. Integration with existing features:
-   - Ensure column visibility works with Pagination
-   - Ensure column visibility works with Search
-   - Ensure column visibility doesn't break table sorting
-
-3. Manual testing:
-   - Test toggling columns on/off
-   - Test URL sharing with different column sets
-   - Test localStorage persistence
-   - Test "Show All" and "Reset" buttons
-   - Test with search and pagination active
-   - Test in multiple browsers
-
-**Deliverables:**
-
-- Fully integrated column visibility feature
-- Updated index.tsx with all features working
-- ColumnVisibilityToggle rendered in UI
-
-**Definition of Done:**
-
-- All 27 columns can be toggled
-- URL updates correctly when columns change
-- localStorage saves/loads preferences
-- Feature works alongside Search and Pagination
-- No breaking changes to existing functionality
-- Passes linting (`npm run check`)
-
----
-
-### Overall Phase 7 Objectives
-
-- Implement ColumnVisibilityToggle component
-- Show/hide columns UI
-- Pure in-memory state management
-
-### Overall Phase 7 Deliverables
-
-- Working column visibility toggle
-- Pure in-memory state (no URL sync, no localStorage)
-- All 27 columns can be toggled independently
-
-### Key Files
-
-- `src/types/column-visibility.ts`
-- `src/components/ColumnVisibilityToggle/index.ts`
-- `src/routes/index.tsx`
+  - Pure in-memory state (no URL/localStorage)
+  - No SSR/hydration issues
+- **Files Created:** 3 files
+  - `src/types/column-visibility.ts`
+  - `src/components/ColumnVisibilityToggle/ColumnVisibilityToggle.tsx`
+  - `src/components/ColumnVisibilityToggle/index.ts`
+- **Files Modified:** 2 files
+  - `src/routes/index.tsx` - Integrated component
+  - `src/types/index.ts` - Added exports
 
 ---
 
