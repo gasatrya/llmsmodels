@@ -12,28 +12,28 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ## Progress Tracking Table
 
-| Phase | Status         | Duration | Focus Area                        | Key Deliverables                                    | Review                                                    |
-| ----- | -------------- | -------- | --------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
-| 1     | ✅ COMPLETED   | 2-3 days | Project Setup                     | Dependencies, folders, existing queryClient pattern | Commit: "feat: complete Phase 1 project setup"            |
-| 2     | ✅ COMPLETED   | 1-2 days | TypeScript Types                  | All 27 column types defined                         | Audit: `docs/reviews/audit-models-types-phase2.md` - PASS |
-| 3     | ✅ COMPLETED   | 2-3 days | API Integration                   | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS              |
-| 3.5   | ✅ COMPLETED   | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | QA: docs/qa/phase3-5-server-api.md - PASS                 |
-| 4     | ✅ COMPLETED   | 2-3 days | Basic Table Layout                | ModelList component, 27 columns, sorting            | Commit: 4fa0940, QA: PASS, Review: PASS                   |
-| 5     | ✅ COMPLETED   | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | Commit: `feat(phase5): implement PaginationControls`      |
-| 6     | ✅ COMPLETED   | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | Commit: `feat(phase6): implement SearchBar`               |
-| 7     | ⏳ IN PROGRESS | 3-4 days | Column Visibility                 | ColumnVisibilityToggle, URL sync                    | Started with sub-phase breakdown (7.1-7.5)                |
-| 8     | ⏳ PENDING     | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | -                                                         |
-| 9     | ⏳ PENDING     | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                         |
-| 10    | ⏳ PENDING     | 3-4 days | Polishing                         | Responsive design, accessibility, animations        | -                                                         |
-| 11    | 🔮 OPTIONAL    | TBD      | Comparison                        | Comparison modal, side-by-side view                 | TBD                                                       |
+| Phase | Status       | Duration | Focus Area                        | Key Deliverables                                    | Review                                                                                            |
+| ----- | ------------ | -------- | --------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1     | ✅ COMPLETED | 2-3 days | Project Setup                     | Dependencies, folders, existing queryClient pattern | Commit: "feat: complete Phase 1 project setup"                                                    |
+| 2     | ✅ COMPLETED | 1-2 days | TypeScript Types                  | All 27 column types defined                         | Audit: `docs/reviews/audit-models-types-phase2.md` - PASS                                         |
+| 3     | ✅ COMPLETED | 2-3 days | API Integration                   | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS                                                      |
+| 3.5   | ✅ COMPLETED | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | QA: docs/qa/phase3-5-server-api.md - PASS                                                         |
+| 4     | ✅ COMPLETED | 2-3 days | Basic Table Layout                | ModelList component, 27 columns, sorting            | Commit: 4fa0940, QA: PASS, Review: PASS                                                           |
+| 5     | ✅ COMPLETED | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | Commit: `feat(phase5): implement PaginationControls`                                              |
+| 6     | ✅ COMPLETED | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | Commit: `feat(phase6): implement SearchBar`                                                       |
+| 7     | ✅ COMPLETED | 3.5 days | Column Visibility                 | ColumnVisibilityToggle, pure in-memory state        | Commits: ad4e967, 382a406, e720719, 5faf6b4, 2627f43, 507693c, 518dcb7, 2cd9494, 69032d1, b0e5d27 |
+| 8     | ⏳ PENDING   | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | -                                                                                                 |
+| 9     | ⏳ PENDING   | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                                                                 |
+| 10    | ⏳ PENDING   | 3-4 days | Polishing                         | Responsive design, accessibility, animations        | -                                                                                                 |
+| 11    | 🔮 OPTIONAL  | TBD      | Comparison                        | Comparison modal, side-by-side view                 | TBD                                                                                               |
 
 ---
 
 ## Total Progress
 
-- **Phases Completed:** 5 out of 11
-- **Progress:** ~45%
-- **Current Phase:** Phase 7 - Column Visibility (Sub-Phase 7.1: Types & Constants)
+- **Phases Completed:** 6 out of 11
+- **Progress:** ~55%
+- **Current Phase:** Phase 8 - Filter Integration (pending)
 
 ---
 
@@ -454,19 +454,60 @@ Server-side pagination, search, and filtering
 
 ## Phase 7: Column Visibility
 
-**Status:** ⏳ IN PROGRESS
+**Status:** ✅ COMPLETED
 
-**Duration:** 3-4 days (broken into 5 sub-phases)
+**Duration:** 3.5 days (broken into 5 sub-phases + refactor)
 
-### Sub-Phase Breakdown
+### Completion Notes
 
-| Sub-Phase | Duration | Focus Area               | Status     |
-| --------- | -------- | ------------------------ | ---------- |
-| 7.1       | 0.5 day  | Types & Constants        | ⏳ PENDING |
-| 7.2       | 1 day    | UI Component             | ⏳ PENDING |
-| 7.3       | 0.5 day  | URL State Sync           | ⏳ PENDING |
-| 7.4       | 0.5 day  | localStorage Persistence | ⏳ PENDING |
-| 7.5       | 1 day    | Integration & Testing    | ⏳ PENDING |
+- **Date Completed:** January 1, 2026
+- **Implementation Approach:** Built with 5 sub-phases, then refactored to pure in-memory state
+- **Final State:** Pure in-memory column visibility (no URL sync, no localStorage)
+- **Commits:** 11 commits total (5 initial + 3 refactor)
+- **QA Reports:**
+  - `docs/qa/phase7-1-types-and-constants.md` - PASS ✅
+  - `docs/qa/phase7-2-column-visibility-toggle.md` - PASS ✅
+  - `docs/qa/phase7-3-url-state-sync.md` - PASS ✅
+  - `docs/qa/phase7-4-column-visibility-persistence.md` - PASS ✅
+  - `docs/qa/phase7-5-full-integration.md` - PASS ✅
+  - `docs/qa/phase7-refactor-pure-memory-state.md` - PASS ✅ (MT-5)
+- **Code Review:** `docs/reviews/phase7-overall-code-review.md` - APPROVED ✅
+- **Files Created:** 5 files
+  - `src/types/column-visibility.ts` - Type definitions and constants
+  - `src/components/ColumnVisibilityToggle/ColumnVisibilityToggle.tsx` - UI component
+  - `src/components/ColumnVisibilityToggle/index.ts` - Component exports
+- **Files Modified:** 2 files
+  - `src/routes/index.tsx` - Integrated component with pure in-memory state
+  - `src/types/index.ts` - Added column visibility type exports
+- **Files Deleted (refactor):** 2 files
+  - `src/lib/url-state.ts` - Removed in refactor (MT-6)
+  - `src/lib/column-visibility-persistence.ts` - Removed in refactor (MT-6)
+- **Key Achievements:**
+  - ColumnVisibilityToggle component with 27 columns
+  - "Show All" and "Reset to Default" buttons
+  - Pure in-memory state (no SSR/hydration issues)
+  - Clean URLs (no long `?cols=` parameter)
+  - Seamless integration with Search and Pagination
+  - No blinking/flash on page load
+  - Full TypeScript type safety
+  - ARIA labels for accessibility
+- **Architecture Decision:** Refactored to pure in-memory state to eliminate:
+  - URL sync complexity and long URLs
+  - localStorage SSR/hydration issues (blinking)
+  - Back button history pollution
+- **Sub-Phases:**
+  - 7.1: Types & Constants ✅ COMPLETED (0.5 day)
+  - 7.2: ColumnVisibilityToggle Component ✅ COMPLETED (1 day)
+  - 7.3: URL State Management ✅ COMPLETED (0.5 day)
+  - 7.4: localStorage Persistence ✅ COMPLETED (0.5 day)
+  - 7.5: Full Integration & Testing ✅ COMPLETED (1 day)
+- **Refactor Micro-tasks:**
+  - MT-1: Remove 'cols' parameter ✅ COMPLETED
+  - MT-2: Simplify state initialization ✅ COMPLETED
+  - MT-3: Remove URL sync useEffect ✅ COMPLETED
+  - MT-4: Remove localStorage persistence ✅ COMPLETED
+  - MT-5: Test functionality ✅ COMPLETED
+  - MT-6: Clean up unused files ✅ COMPLETED
 
 ---
 
@@ -664,22 +705,18 @@ Server-side pagination, search, and filtering
 
 - Implement ColumnVisibilityToggle component
 - Show/hide columns UI
-- Sync column visibility to URL
-- Persist defaults to localStorage
+- Pure in-memory state management
 
 ### Overall Phase 7 Deliverables
 
 - Working column visibility toggle
-- URL sync for column visibility
-- localStorage for defaults
+- Pure in-memory state (no URL sync, no localStorage)
 - All 27 columns can be toggled independently
 
 ### Key Files
 
 - `src/types/column-visibility.ts`
 - `src/components/ColumnVisibilityToggle/index.ts`
-- `src/lib/url-state.ts`
-- `src/lib/column-visibility-persistence.ts`
 - `src/routes/index.tsx`
 
 ---
