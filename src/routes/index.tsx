@@ -22,10 +22,11 @@ import type { ColumnVisibilityState } from '@/types/column-visibility'
 import type { FlattenedModel } from '@/types/models'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { getColumnVisibilityFromUrl } from '@/lib/url-state'
-import { loadDefaultColumnVisibility } from '@/lib/column-visibility-persistence'
+import { loadDefaultColumnVisibility, saveDefaultColumnVisibility  } from '@/lib/column-visibility-persistence'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
+import { ColumnVisibilityToggle } from '@/components/ColumnVisibilityToggle'
 
 // Define search params schema
 const indexSearchSchema = z.object({
@@ -507,6 +508,24 @@ function IndexPage() {
     })
   }, [globalFilter, navigate])
 
+  // Sync column visibility to URL and localStorage
+  useEffect(() => {
+    const visibleCols = Object.entries(columnVisibility)
+      .filter(([, isVisible]) => isVisible)
+      .map(([colId]) => colId)
+      .join(',')
+
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        cols: visibleCols || undefined,
+      }),
+    })
+
+    // Save to localStorage for persistence
+    saveDefaultColumnVisibility(columnVisibility)
+  }, [columnVisibility, navigate])
+
   const selectedRows = table.getSelectedRowModel().rows
   const totalCount = modelsQuery.data.pagination.total
 
@@ -537,12 +556,18 @@ function IndexPage() {
       </header>
 
       <div className="space-y-4">
-        {/* Search Bar */}
-        <SearchBar
-          value={globalFilter}
-          onChange={setGlobalFilter}
-          className="max-w-md"
-        />
+        {/* Search Bar and Column Visibility */}
+        <div className="flex gap-4 items-start">
+          <SearchBar
+            value={globalFilter}
+            onChange={setGlobalFilter}
+            className="max-w-md flex-1"
+          />
+          <ColumnVisibilityToggle
+            table={table}
+            onVisibilityChange={setColumnVisibility}
+          />
+        </div>
 
         {/* Selection info */}
         {selectedRows.length > 0 && (
