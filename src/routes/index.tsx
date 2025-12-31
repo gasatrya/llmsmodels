@@ -416,12 +416,15 @@ function IndexPage() {
     return search.search
   })
 
-  // Initialize column visibility from URL
+  // Initialize column visibility from URL (SSR-safe using search from Route.useSearch)
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>(() => {
-      return getColumnVisibilityFromUrl(
-        new URLSearchParams(window.location.search),
-      )
+      // Create URLSearchParams from search object for SSR safety
+      const params = new URLSearchParams()
+      if (search.cols) {
+        params.set('cols', search.cols)
+      }
+      return getColumnVisibilityFromUrl(params)
     })
 
   // Query with pagination
