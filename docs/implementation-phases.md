@@ -12,28 +12,28 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 ## Progress Tracking Table
 
-| Phase | Status       | Duration | Focus Area                        | Key Deliverables                                    | Review                                                    |
-| ----- | ------------ | -------- | --------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
-| 1     | ✅ COMPLETED | 2-3 days | Project Setup                     | Dependencies, folders, existing queryClient pattern | Commit: "feat: complete Phase 1 project setup"            |
-| 2     | ✅ COMPLETED | 1-2 days | TypeScript Types                  | All 27 column types defined                         | Audit: `docs/reviews/audit-models-types-phase2.md` - PASS |
-| 3     | ✅ COMPLETED | 2-3 days | API Integration                   | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS              |
-| 3.5   | ✅ COMPLETED | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | QA: docs/qa/phase3-5-server-api.md - PASS                 |
-| 4     | ✅ COMPLETED | 2-3 days | Basic Table Layout                | ModelList component, 27 columns, sorting            | Commit: 4fa0940, QA: PASS, Review: PASS                   |
-| 5     | ✅ COMPLETED | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | Commit: `feat(phase5): implement PaginationControls`      |
-| 6     | ✅ COMPLETED | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | Commit: `feat(phase6): implement SearchBar`               |
-| 7     | ✅ COMPLETED | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | Commit: `feat(phase7): implement FilterPanel`             |
-| 8     | ⏳ PENDING   | 2-3 days | Column Visibility                 | ColumnVisibilityToggle, URL sync                    | -                                                         |
-| 9     | ⏳ PENDING   | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                         |
-| 10    | ⏳ PENDING   | 3-4 days | Polishing                         | Responsive design, accessibility, animations        | -                                                         |
-| 11    | 🔮 OPTIONAL  | TBD      | Comparison                        | Comparison modal, side-by-side view                 | TBD                                                       |
+| Phase | Status         | Duration | Focus Area                        | Key Deliverables                                    | Review                                                    |
+| ----- | -------------- | -------- | --------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
+| 1     | ✅ COMPLETED   | 2-3 days | Project Setup                     | Dependencies, folders, existing queryClient pattern | Commit: "feat: complete Phase 1 project setup"            |
+| 2     | ✅ COMPLETED   | 1-2 days | TypeScript Types                  | All 27 column types defined                         | Audit: `docs/reviews/audit-models-types-phase2.md` - PASS |
+| 3     | ✅ COMPLETED   | 2-3 days | API Integration                   | fetchModels server function, data transform         | QA: docs/qa/phase3-api-integration.md - PASS              |
+| 3.5   | ✅ COMPLETED   | 2-3 days | Custom Server API with Pagination | Server-side pagination, search, and filtering       | QA: docs/qa/phase3-5-server-api.md - PASS                 |
+| 4     | ✅ COMPLETED   | 2-3 days | Basic Table Layout                | ModelList component, 27 columns, sorting            | Commit: 4fa0940, QA: PASS, Review: PASS                   |
+| 5     | ✅ COMPLETED   | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | Commit: `feat(phase5): implement PaginationControls`      |
+| 6     | ✅ COMPLETED   | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | Commit: `feat(phase6): implement SearchBar`               |
+| 7     | ⏳ IN PROGRESS | 3-4 days | Column Visibility                 | ColumnVisibilityToggle, URL sync                    | Started with sub-phase breakdown (7.1-7.5)                |
+| 8     | ⏳ PENDING     | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | -                                                         |
+| 9     | ⏳ PENDING     | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                         |
+| 10    | ⏳ PENDING     | 3-4 days | Polishing                         | Responsive design, accessibility, animations        | -                                                         |
+| 11    | 🔮 OPTIONAL    | TBD      | Comparison                        | Comparison modal, side-by-side view                 | TBD                                                       |
 
 ---
 
 ## Total Progress
 
-- **Phases Completed:** 7 out of 11
-- **Progress:** ~64%
-- **Current Phase:** Phase 8 - Column Visibility
+- **Phases Completed:** 5 out of 11
+- **Progress:** ~45%
+- **Current Phase:** Phase 7 - Column Visibility (Sub-Phase 7.1: Types & Constants)
 
 ---
 
@@ -452,38 +452,243 @@ Server-side pagination, search, and filtering
 
 ---
 
-## Phase 7: Filter Integration
+## Phase 7: Column Visibility
 
-**Status:** ✅ COMPLETED
+**Status:** ⏳ IN PROGRESS
+
+**Duration:** 3-4 days (broken into 5 sub-phases)
+
+### Sub-Phase Breakdown
+
+| Sub-Phase | Duration | Focus Area               | Status     |
+| --------- | -------- | ------------------------ | ---------- |
+| 7.1       | 0.5 day  | Types & Constants        | ⏳ PENDING |
+| 7.2       | 1 day    | UI Component             | ⏳ PENDING |
+| 7.3       | 0.5 day  | URL State Sync           | ⏳ PENDING |
+| 7.4       | 0.5 day  | localStorage Persistence | ⏳ PENDING |
+| 7.5       | 1 day    | Integration & Testing    | ⏳ PENDING |
+
+---
+
+### Sub-Phase 7.1: Type Definitions & Constants (0.5 day)
+
+**Status:** ⏳ PENDING
+
+**Objective:** Define all types and constants needed for column visibility
+
+**Tasks:**
+
+1. Create `src/types/column-visibility.ts`:
+   - Define `ColumnVisibilityState` interface (Record<string, boolean>)
+   - Define `ColumnVisibilityOptions` interface
+   - Export constants:
+     - `DEFAULT_VISIBLE_COLUMNS` array (6 default columns)
+     - `ALL_COLUMNS` array with id and label for all 27 columns
+     - `COLUMN_VISIBILITY_STORAGE_KEY` constant
+
+2. Update `src/types/index.ts`:
+   - Add export for new column-visibility types
+
+**Deliverables:**
+
+- `src/types/column-visibility.ts` with all type definitions
+- Updated `src/types/index.ts` with new exports
+- All 27 columns defined with correct IDs and labels
+
+**Definition of Done:**
+
+- TypeScript compiles without errors
+- All column IDs match the actual column definitions in `src/routes/index.tsx`
+- Types exported from `@/types` module
+
+---
+
+### Sub-Phase 7.2: ColumnVisibilityToggle Component (1 day)
+
+**Status:** ⏳ PENDING
+
+**Objective:** Create the UI component for toggling column visibility
+
+**Tasks:**
+
+1. Create `src/components/ColumnVisibilityToggle/ColumnVisibilityToggle.tsx`:
+   - Dropdown component with button trigger
+   - List of all 27 columns with checkboxes
+   - "Show All" button to enable all columns
+   - "Reset to Default" button to restore 6 default columns
+   - Close on backdrop click
+   - ARIA labels for accessibility
+   - Use Lucide icons (Settings/Columns icon)
+
+2. Create `src/components/ColumnVisibilityToggle/index.ts`:
+   - Export ColumnVisibilityToggle component
+
+**Deliverables:**
+
+- Working ColumnVisibilityToggle component
+- Proper TypeScript types
+- ARIA attributes for accessibility
+- Follows SearchBar patterns (similar structure)
+
+**Definition of Done:**
+
+- Component renders correctly
+- All 27 columns display with checkboxes
+- "Show All" and "Reset" buttons work
+- Dropdown opens/closes properly
+- No console errors
+- Passes linting
+
+---
+
+### Sub-Phase 7.3: URL State Management (0.5 day)
+
+**Status:** ⏳ PENDING
+
+**Objective:** Implement URL synchronization for column visibility
+
+**Tasks:**
+
+1. Create `src/lib/url-state.ts` (or add to existing):
+   - `getColumnVisibilityFromUrl(params: URLSearchParams): ColumnVisibilityState`
+   - `getUrlFromColumnVisibility(visibility: ColumnVisibilityState): string`
+   - Handle comma-separated column IDs in `?cols=` parameter
+   - Return defaults when URL param is empty
+
+2. Update `src/routes/index.tsx`:
+   - Add `cols` to `indexSearchSchema` validation
+   - Parse column visibility from URL on initial load
+   - Initialize TanStack Table's `columnVisibility` state from URL
+
+**URL Format:**
+
+```
+?cols=select,providerName,modelName,toolCall,inputCost,contextLimit
+```
+
+**Deliverables:**
+
+- URL state parsing/syncing functions
+- Updated index.tsx with URL-based column visibility
+- TypeScript types for URL params
+
+**Definition of Done:**
+
+- Column visibility loads from URL correctly
+- URL updates when columns are toggled
+- Invalid column IDs in URL are handled gracefully
+- Defaults apply when URL param is missing
+
+---
+
+### Sub-Phase 7.4: localStorage Persistence (0.5 day)
+
+**Status:** ⏳ PENDING
+
+**Objective:** Add localStorage for default column visibility preferences
+
+**Tasks:**
+
+1. Create persistence utility in `src/lib/column-visibility-persistence.ts`:
+   - `saveDefaultColumnVisibility(visibility: ColumnVisibilityState): void`
+   - `loadDefaultColumnVisibility(): ColumnVisibilityState | null`
+   - Check for `typeof window === 'undefined'` for SSR safety
+
+2. Update `src/routes/index.tsx`:
+   - Load from localStorage when URL has no column visibility
+   - Save to localStorage when user changes visibility (no URL param present)
+   - Priority: URL > localStorage > hard-coded defaults
+
+**Deliverables:**
+
+- localStorage utility functions
+- Integration with URL state logic
+- SSR-safe implementation
+
+**Definition of Done:**
+
+- Column visibility persists across page reloads (when no URL param)
+- localStorage saves when user changes visibility
+- Doesn't cause SSR hydration mismatch
+- Works correctly in all browsers
+
+---
+
+### Sub-Phase 7.5: Full Integration & Testing (1 day)
+
+**Status:** ⏳ PENDING
+
+**Objective:** Integrate everything into the main page and test thoroughly
+
+**Tasks:**
+
+1. Update `src/routes/index.tsx`:
+   - Import ColumnVisibilityToggle component
+   - Add `columnVisibility` state management (with useState or TanStack Table's built-in)
+   - Add `getColumnVisibilityModel` to useReactTable configuration
+   - Add useEffect to sync column visibility to URL
+   - Add ColumnVisibilityToggle component to UI (near SearchBar)
+   - Update Route.useSearch() to handle cols parameter
+
+2. Integration with existing features:
+   - Ensure column visibility works with Pagination
+   - Ensure column visibility works with Search
+   - Ensure column visibility doesn't break table sorting
+
+3. Manual testing:
+   - Test toggling columns on/off
+   - Test URL sharing with different column sets
+   - Test localStorage persistence
+   - Test "Show All" and "Reset" buttons
+   - Test with search and pagination active
+   - Test in multiple browsers
+
+**Deliverables:**
+
+- Fully integrated column visibility feature
+- Updated index.tsx with all features working
+- ColumnVisibilityToggle rendered in UI
+
+**Definition of Done:**
+
+- All 27 columns can be toggled
+- URL updates correctly when columns change
+- localStorage saves/loads preferences
+- Feature works alongside Search and Pagination
+- No breaking changes to existing functionality
+- Passes linting (`npm run check`)
+
+---
+
+### Overall Phase 7 Objectives
+
+- Implement ColumnVisibilityToggle component
+- Show/hide columns UI
+- Sync column visibility to URL
+- Persist defaults to localStorage
+
+### Overall Phase 7 Deliverables
+
+- Working column visibility toggle
+- URL sync for column visibility
+- localStorage for defaults
+- All 27 columns can be toggled independently
+
+### Key Files
+
+- `src/types/column-visibility.ts`
+- `src/components/ColumnVisibilityToggle/index.ts`
+- `src/lib/url-state.ts`
+- `src/lib/column-visibility-persistence.ts`
+- `src/routes/index.tsx`
+
+---
+
+## Phase 8: Filter Integration
+
+**Status:** ⏳ PENDING
 
 **Duration:** 3-4 days
-
-### Completion Notes
-
-- **Date Completed:** December 29, 2025
-- **Commit:** `feat(phase7): implement FilterPanel with provider and capability filters`
-- **QA Report:** `docs/qa/phase7-filter-integration.md` - PASS ✅
-- **Files Created:** 5 files
-  - `src/types/filters.ts` - FilterState interface and defaultFilters
-  - `src/components/FilterPanel/ProviderFilter.tsx` - Multi-select provider filter
-  - `src/components/FilterPanel/CapabilityFilter.tsx` - Toggle capability filter
-  - `src/components/FilterPanel/FilterPanel.tsx` - Main container component
-  - `src/components/FilterPanel/index.ts` - Export file
-- **Files Modified:** 4 files
-  - `src/routes/index.tsx` - Integrated FilterPanel with URL sync
-  - `src/lib/api/models.ts` - Updated modelsQueryOptions to accept filter params
-  - `src/types/index.ts` - Added filter types export
-  - `docs/qa/phase7-filter-integration.md` - QA report
-- **Key Achievements:**
-  - FilterPanel with expandable/collapsible design
-  - ProviderFilter with multi-select, search, Select All/Clear All
-  - CapabilityFilter with toggles for reasoning, toolCall, structuredOutput
-  - URL state synchronization for all filter parameters
-  - Server-side filtering via Phase 3.5 API
-  - Active filter count display
-  - "Clear All Filters" button
-  - Integration with search and pagination
-  - Proper SSR with Route.useSearch()
 
 ### Objectives
 
@@ -518,48 +723,6 @@ Server-side pagination, search, and filtering
 ### Key Files
 
 - `src/components/FilterPanel/index.ts`
-
----
-
-## Phase 8: Column Visibility
-
-**Status:** ⏳ PENDING
-
-**Duration:** 2-3 days
-
-### Objectives
-
-- Implement ColumnVisibilityToggle component
-- Show/hide columns UI
-- Sync column visibility to URL
-- Persist defaults to localStorage
-
-### Tasks
-
-1. **Column Toggle Component**
-   - Dropdown with all 27 columns
-   - Checkbox for each column
-   - Show all / Reset to defaults
-
-2. **URL Synchronization**
-   - Sync column visibility to URL params
-   - Handle comma-separated values
-   - Parse URL on initial load
-
-3. **localStorage Persistence**
-   - Save default column visibility
-   - Load preferences on first visit
-   - Handle reset to defaults
-
-### Deliverables
-
-- Working column visibility toggle
-- URL sync for column visibility
-- localStorage for defaults
-
-### Key Files
-
-- `src/components/ColumnVisibilityToggle/index.ts`
 
 ---
 

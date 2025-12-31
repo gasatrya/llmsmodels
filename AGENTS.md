@@ -4,8 +4,9 @@ Context for agentic coding systems working on this project.
 
 ## Main Rules
 
-- Never ever fetch the source API directly `https://models.dev/api.json`, because it's huge amount of data, just check the sample return `docs/sample-api-models-dev.json`
+- Every feature that will be implemented should be broken down into smaller, manageable sub-phases/tasks and implemented incrementally. Each sub-phase/task should be planned carefully, and before continuing to the next sub-phase/task it must be PASSED QA and code review. When the sub-phase/task is completed, you should ask the user for feedback and approval before proceeding to the next sub-phase/task.
 - When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
+- Never ever fetch the source API directly `https://models.dev/api.json`, because it's huge amount of data, just check the sample return `docs/sample-api-models-dev.json`
 - Never try to start dev server, dev server always running at `http://localhost:3000`
 
 ## Subagents and Skills
