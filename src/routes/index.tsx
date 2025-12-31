@@ -22,7 +22,6 @@ import type { ColumnVisibilityState } from '@/types/column-visibility'
 import type { FlattenedModel } from '@/types/models'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { getColumnVisibilityFromUrl } from '@/lib/url-state'
-import { saveDefaultColumnVisibility } from '@/lib/column-visibility-persistence'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
@@ -492,24 +491,6 @@ function IndexPage() {
       }),
     })
   }, [globalFilter, navigate])
-
-  // Sync column visibility to URL and localStorage
-  useEffect(() => {
-    const visibleCols = Object.entries(columnVisibility)
-      .filter(([, isVisible]) => isVisible)
-      .map(([colId]) => colId)
-      .join(',')
-
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        cols: visibleCols || undefined,
-      }),
-    })
-
-    // Save to localStorage for persistence
-    saveDefaultColumnVisibility(columnVisibility)
-  }, [columnVisibility, navigate])
 
   const selectedRows = table.getSelectedRowModel().rows
   const totalCount = modelsQuery.data.pagination.total
