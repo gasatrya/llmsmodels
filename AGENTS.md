@@ -4,7 +4,7 @@ Context for agentic coding systems working on this project.
 
 ## Main Rules
 
-- Every feature that will be implemented should be broken down into smaller, manageable sub-phases/tasks and implemented incrementally. Each sub-phase/task should be planned carefully, and before continuing to the next sub-phase/task it must be PASSED QA and code review. When the sub-phase/task is completed, you should ask the user for feedback and approval before proceeding to the next sub-phase/task.
+- Every feature that will be implemented should be broken down into smaller, manageable sub-phases/tasks and implemented incrementally. Each sub-phase/task should be planned carefully, and before continuing to the next sub-phase/task it must be PASSED QA and code review. When the sub-phase/task is completed, you should ask the user for feedback and approval before proceeding to the next sub-phase/task. When the user approves, you can proceed to the next sub-phase/task but make sure the git is clean, if not commit the changes before proceeding.
 - When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
 - Never ever fetch the source API directly `https://models.dev/api.json`, because it's huge amount of data, just check the sample return `docs/sample-api-models-dev.json`
 - Never try to start dev server, dev server always running at `http://localhost:3000`
@@ -49,39 +49,46 @@ Leverate built-in tools if you have the necessary permissions.
 Each feature must pass through these checkpoints before merging:
 
 ### Gate 1: Requirements Ready ☐
+
 - [ ] Clear user requirements documented
 - [ ] Definition of Done specified
 - [ ] Tech constraints identified
 - [ ] Branch created via `@github-flow`
 
 ### Gate 2: Design Complete ☐
+
 - [ ] Implementation plan created
 - [ ] Relevant files explored
 - [ ] Research documented (if needed)
 - [ ] Dependencies identified
 
 ### Gate 3: Implementation Ready ☐
+
 - [ ] Context files provided to `@builder`
 - [ ] Technical specifications clear
 - [ ] Testing approach defined
 
 ### Gate 4: Code Complete ☐
+
 - [ ] Code written
 - [ ] Passes linting (`npm run check`)
 - [ ] Follows project patterns
 - [ ] Self-reviewed
 
 ### Gate 5: Review Complete ☐
+
 - [ ] `@code-reviewer` approved
 - [ ] Issues addressed
 - [ ] Changes committed
 
 ### Gate 6: Testing Complete ☐
+
 - [ ] `@qa-specialist` verified
 - [ ] Tests pass (`npm run test`)
 - [ ] No critical bugs
 
 ### Gate 7: Ready for Merge ☐
+
 - [ ] PR created with clear description
 - [ ] Documentation updated (if needed)
 - [ ] Approved for merge
@@ -97,12 +104,12 @@ Each feature must pass through these checkpoints before merging:
 
 ### Test Coverage Requirements
 
-| Scenario | Coverage |
-|----------|----------|
-| Critical paths (authentication, data loading) | 100% |
-| New features | 80%+ |
-| Bug fixes | Specific scenario tests |
-| Refactoring | Existing tests still pass |
+| Scenario                                      | Coverage                  |
+| --------------------------------------------- | ------------------------- |
+| Critical paths (authentication, data loading) | 100%                      |
+| New features                                  | 80%+                      |
+| Bug fixes                                     | Specific scenario tests   |
+| Refactoring                                   | Existing tests still pass |
 
 ## Documentation Requirements
 
@@ -110,13 +117,13 @@ Each feature must pass through these checkpoints before merging:
 
 Document must concise and clear.
 
-| Change | Documentation Needed |
-|--------|---------------------|
-| New feature | Feature doc + API changes |
-| Bug fix | Issue resolution doc |
-| Breaking change | Migration guide |
-| New component | Component usage doc |
-| Complex logic | In-code comments + architecture doc |
+| Change          | Documentation Needed                |
+| --------------- | ----------------------------------- |
+| New feature     | Feature doc + API changes           |
+| Bug fix         | Issue resolution doc                |
+| Breaking change | Migration guide                     |
+| New component   | Component usage doc                 |
+| Complex logic   | In-code comments + architecture doc |
 
 ## Tech Stack
 

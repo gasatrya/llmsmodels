@@ -20,8 +20,8 @@ import type {
 } from '@tanstack/react-table'
 import type { ColumnVisibilityState } from '@/types/column-visibility'
 import type { FlattenedModel } from '@/types/models'
+import { ALL_COLUMNS, DEFAULT_VISIBLE_COLUMNS } from '@/types/column-visibility'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
-import { getColumnVisibilityFromUrl } from '@/lib/url-state'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
@@ -420,7 +420,12 @@ function IndexPage() {
   // Initialize column visibility with defaults (pure in-memory state)
   const [columnVisibility, setColumnVisibility] =
     useState<ColumnVisibilityState>(() => {
-      return getColumnVisibilityFromUrl(new URLSearchParams())
+      return Object.fromEntries(
+        ALL_COLUMNS.map((col) => [
+          col.id,
+          DEFAULT_VISIBLE_COLUMNS.includes(col.id),
+        ]),
+      )
     })
 
   // Query with pagination

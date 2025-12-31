@@ -2,5 +2,4 @@
  * Library index file - exports all utility functions and modules
  */
 
-export * from './url-state'
-export * from './column-visibility-persistence'
+// URL state and localStorage files removed - using pure in-memory state
