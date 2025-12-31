@@ -18,8 +18,10 @@ import type {
   RowSelectionState,
   SortingState,
 } from '@tanstack/react-table'
+import type { ColumnVisibilityState } from '@/types/column-visibility'
 import type { FlattenedModel } from '@/types/models'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
+import { getColumnVisibilityFromUrl } from '@/lib/url-state'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
@@ -29,6 +31,7 @@ const indexSearchSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(50),
   search: z.string().default(''),
+  cols: z.string().optional(),
 })
 
 export const Route = createFileRoute('/')({
@@ -37,6 +40,7 @@ export const Route = createFileRoute('/')({
     page: search.page,
     limit: search.limit,
     searchQuery: search.search,
+    cols: search.cols,
   }),
   loader: async ({ deps, context }) => {
     return context.queryClient.ensureQueryData(
@@ -412,6 +416,14 @@ function IndexPage() {
     return search.search
   })
 
+  // Initialize column visibility from URL
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>(() => {
+      return getColumnVisibilityFromUrl(
+        new URLSearchParams(window.location.search),
+      )
+    })
+
   // Query with pagination
   const modelsQuery = useQuery({
     queryKey: ['models', pagination, globalFilter],
@@ -446,11 +458,13 @@ function IndexPage() {
       sorting,
       rowSelection,
       globalFilter,
+      columnVisibility,
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnVisibilityChange: setColumnVisibility,
     // @ts-expect-error - filterFns is required due to module augmentation in demo/table.tsx but we don't use it
     filterFns: {},
     enableRowSelection: true,
