@@ -22,6 +22,9 @@ const GetModelsSchema = z.object({
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().max(100).default(50),
   search: z.string().optional().default(''),
+  reasoning: z.boolean().optional(),
+  toolCall: z.boolean().optional(),
+  openWeights: z.boolean().optional(),
 })
 
 export type GetModelsInput = z.infer<typeof GetModelsSchema>
@@ -129,12 +132,31 @@ function applyFilters(
   models: Array<FlattenedModel>,
   input: GetModelsInput,
 ): Array<FlattenedModel> {
+  let filtered = models
+
   // Apply search filter
   if (input.search.trim()) {
-    return applySearchFilter(models, input.search)
+    filtered = applySearchFilter(filtered, input.search)
   }
 
-  return models
+  // Apply reasoning filter
+  if (input.reasoning === true) {
+    filtered = filtered.filter((model) => model.reasoning === true)
+  }
+
+  // Apply tool call filter
+  if (input.toolCall === true) {
+    filtered = filtered.filter((model) => model.toolCall === true)
+  }
+
+  // Apply open weights filter
+  if (input.openWeights === true) {
+    filtered = filtered.filter(
+      (model) => model.weights.toLowerCase() === 'open',
+    )
+  }
+
+  return filtered
 }
 
 // ============================================
@@ -217,10 +239,21 @@ export const modelsQueryOptions = (
     page: 1,
     limit: 50,
     search: '',
+    reasoning: undefined,
+    toolCall: undefined,
+    openWeights: undefined,
   },
 ) =>
   queryOptions({
-    queryKey: ['models', params.page, params.limit, params.search],
+    queryKey: [
+      'models',
+      params.page,
+      params.limit,
+      params.search,
+      params.reasoning,
+      params.toolCall,
+      params.openWeights,
+    ],
     queryFn: () => getModels({ data: params }),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
   })
