@@ -18,13 +18,16 @@ import type {
   RowSelectionState,
   SortingState,
 } from '@tanstack/react-table'
+import type { ColumnVisibilityState } from '@/types/column-visibility'
 import type { FlattenedModel } from '@/types/models'
 import type { SimpleFiltersState } from '@/types/filters'
+import { ALL_COLUMNS, DEFAULT_VISIBLE_COLUMNS } from '@/types/column-visibility'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
 import { SimplifiedFilters } from '@/components/SimplifiedFilters'
+import { ColumnVisibilityToggle } from '@/components/ColumnVisibilityToggle'
 
 // Define search params schema
 const indexSearchSchema = z.object({
@@ -442,6 +445,17 @@ function IndexPage() {
     openWeights: search.openWeights ?? undefined,
   }))
 
+  // Initialize column visibility with defaults (pure in-memory state)
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>(() => {
+      return Object.fromEntries(
+        ALL_COLUMNS.map((col) => [
+          col.id,
+          DEFAULT_VISIBLE_COLUMNS.includes(col.id),
+        ]),
+      )
+    })
+
   // Query with pagination
   const modelsQuery = useQuery({
     queryKey: ['models', pagination, globalFilter, filters],
@@ -479,11 +493,13 @@ function IndexPage() {
       sorting,
       rowSelection,
       globalFilter,
+      columnVisibility,
     },
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
+    onColumnVisibilityChange: setColumnVisibility,
     // @ts-expect-error - filterFns is required due to module augmentation in demo/table.tsx but we don't use it
     filterFns: {},
     enableRowSelection: true,
@@ -565,12 +581,18 @@ function IndexPage() {
       </header>
 
       <div className="space-y-4">
-        {/* Search Bar */}
-        <SearchBar
-          value={globalFilter}
-          onChange={setGlobalFilter}
-          className="max-w-md"
-        />
+        {/* Search Bar and Column Visibility */}
+        <div className="flex gap-4 items-start">
+          <SearchBar
+            value={globalFilter}
+            onChange={setGlobalFilter}
+            className="max-w-md flex-1"
+          />
+          <ColumnVisibilityToggle
+            table={table}
+            onVisibilityChange={setColumnVisibility}
+          />
+        </div>
 
         {/* Filter Controls */}
         <SimplifiedFilters
