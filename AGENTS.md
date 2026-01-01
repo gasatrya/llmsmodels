@@ -10,30 +10,6 @@ Context for agentic coding systems working on this project.
 
 ## Subagents and Skills
 
-### Built-in Tools
-
-Leverate built-in tools if you have the necessary permissions.
-
-- **bash**: Execute shell commands in your project environment.
-- **edit**: Modify existing files using exact string replacements.
-- **write**: Create new files or overwrite existing ones.
-- **read**: Read file contents from your codebase.
-- **grep**: Search file contents using regular expressions.
-- **glob**: Find files by pattern matching.
-- **list**: List files and directories in a given path.
-- **patch**: Apply patches to files.
-- **skill**: Load a skill (a SKILL.md file) and return its content in the conversation.
-- **task**: Launch a new agent to handle complex, multi-step tasks autonomously.
-- **todowrite**: Manage todo lists during coding sessions.
-- **todoread**: Read existing todo lists.
-- **webfetch**: Fetch web content.
-- **websearch**: Search necessary information on the web.
-- **codesearch**: Search real-world codebases for relevant examples.
-- **batch**: Executes multiple independent tool calls concurrently to reduce latency.
-- **gh_grep**: Search real-world code examples from GitHub
-- **context7**: Fetch up-to-date documentation for libraries
-- **playwright**: UI testing (when applicable)
-
 ### Specialists / Subagents
 
 - **github-flow**: creating branches for new features or bug fixes, making commits with clear and concise messages, opening pull requests for code review, and merging changes after approval.
