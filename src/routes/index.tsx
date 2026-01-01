@@ -19,16 +19,30 @@ import type {
   SortingState,
 } from '@tanstack/react-table'
 import type { FlattenedModel } from '@/types/models'
+import type { SimpleFiltersState } from '@/types/filters'
 import { getModels, modelsQueryOptions } from '@/lib/api/models'
 import { PaginationControls } from '@/components/PaginationControls'
 import { ModelList } from '@/components/ModelList/ModelList'
 import { SearchBar } from '@/components/SearchBar'
+import { SimplifiedFilters } from '@/components/SimplifiedFilters'
 
 // Define search params schema
 const indexSearchSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(50),
   search: z.string().default(''),
+  reasoning: z.preprocess((val) => {
+    if (val === 'true' || val === true) return true
+    return undefined
+  }, z.boolean().optional()),
+  toolCall: z.preprocess((val) => {
+    if (val === 'true' || val === true) return true
+    return undefined
+  }, z.boolean().optional()),
+  openWeights: z.preprocess((val) => {
+    if (val === 'true' || val === true) return true
+    return undefined
+  }, z.boolean().optional()),
 })
 
 export const Route = createFileRoute('/')({
@@ -37,6 +51,9 @@ export const Route = createFileRoute('/')({
     page: search.page,
     limit: search.limit,
     searchQuery: search.search,
+    reasoning: search.reasoning,
+    toolCall: search.toolCall,
+    openWeights: search.openWeights,
   }),
   loader: async ({ deps, context }) => {
     return context.queryClient.ensureQueryData(
@@ -44,6 +61,9 @@ export const Route = createFileRoute('/')({
         page: deps.page,
         limit: deps.limit,
         search: deps.searchQuery,
+        reasoning: deps.reasoning,
+        toolCall: deps.toolCall,
+        openWeights: deps.openWeights,
       }),
     )
   },
@@ -392,6 +412,9 @@ function IndexPage() {
       page: search.page,
       limit: search.limit,
       search: search.search,
+      reasoning: search.reasoning,
+      toolCall: search.toolCall,
+      openWeights: search.openWeights,
     }),
   )
 
@@ -412,15 +435,25 @@ function IndexPage() {
     return search.search
   })
 
+  // Filter state for reasoning, toolCall, and openWeights (synced with URL)
+  const [filters, setFilters] = useState<SimpleFiltersState>(() => ({
+    reasoning: search.reasoning ?? undefined,
+    toolCall: search.toolCall ?? undefined,
+    openWeights: search.openWeights ?? undefined,
+  }))
+
   // Query with pagination
   const modelsQuery = useQuery({
-    queryKey: ['models', pagination, globalFilter],
+    queryKey: ['models', pagination, globalFilter, filters],
     queryFn: () =>
       getModels({
         data: {
           page: pagination.pageIndex + 1,
           limit: pagination.pageSize,
           search: globalFilter,
+          reasoning: filters.reasoning,
+          toolCall: filters.toolCall,
+          openWeights: filters.openWeights,
         },
       }),
     placeholderData: keepPreviousData,
@@ -467,7 +500,7 @@ function IndexPage() {
         limit: pagination.pageSize,
       }),
     })
-  }, [pagination, navigate])
+  }, [pagination, navigate, search])
 
   // Update URL when search changes
   useEffect(() => {
@@ -477,7 +510,30 @@ function IndexPage() {
         search: globalFilter || undefined,
       }),
     })
-  }, [globalFilter, navigate])
+  }, [globalFilter, navigate, search])
+
+  // Update URL when filters change
+  useEffect(() => {
+    // Only navigate if URL values differ from current filter state to prevent infinite loops
+    if (
+      search.reasoning === filters.reasoning &&
+      search.toolCall === filters.toolCall &&
+      search.openWeights === filters.openWeights
+    ) {
+      return
+    }
+
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        reasoning:
+          filters.reasoning === undefined ? undefined : filters.reasoning,
+        toolCall: filters.toolCall === undefined ? undefined : filters.toolCall,
+        openWeights:
+          filters.openWeights === undefined ? undefined : filters.openWeights,
+      }),
+    })
+  }, [filters, navigate, search])
 
   const selectedRows = table.getSelectedRowModel().rows
   const totalCount = modelsQuery.data.pagination.total
@@ -514,6 +570,13 @@ function IndexPage() {
           value={globalFilter}
           onChange={setGlobalFilter}
           className="max-w-md"
+        />
+
+        {/* Filter Controls */}
+        <SimplifiedFilters
+          filters={filters}
+          onChange={setFilters}
+          className="mt-4"
         />
 
         {/* Selection info */}
