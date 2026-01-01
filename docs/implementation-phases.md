@@ -6,7 +6,7 @@ Tracking document for all implementation phases of the AI Models Explorer projec
 
 A React-based AI Models Explorer application that allows users to browse, search, and filter through 500+ AI models from various providers. The application uses TanStack Start for the framework, TanStack Table for data presentation, and TanStack Query for data fetching with 24-hour caching.
 
-**Total Estimated Time:** 22-31 days (excluding Phase 10)
+**Total Estimated Time:** 20-28 days (excluding Phase 10)
 
 ---
 
@@ -21,8 +21,8 @@ A React-based AI Models Explorer application that allows users to browse, search
 | 4     | ✅ COMPLETED | 2-3 days | Basic Table Layout                | ModelList component, 27 columns, sorting            | Commit: 4fa0940, QA: PASS, Review: PASS                   |
 | 5     | ✅ COMPLETED | 2-3 days | Pagination Controls               | Pagination controls UI with server-side integration | Commit: `feat(phase5): implement PaginationControls`      |
 | 6     | ✅ COMPLETED | 2-3 days | Search Integration                | SearchBar, globalFilter, URL sync                   | Commit: `feat(phase6): implement SearchBar`               |
-| 7     | ✅ COMPLETED | 3-4 days | Filter Integration                | FilterPanel, columnFilters, URL sync                | Commit: `feat(phase7): implement FilterPanel`             |
-| 8     | ⏳ PENDING   | 2-3 days | Column Visibility                 | ColumnVisibilityToggle, URL sync                    | -                                                         |
+| 7     | ✅ COMPLETED | 3.5 days | Column Visibility                 | ColumnVisibilityToggle with in-memory state       | Branch: `feature/phase7-column-visibility`              |
+| 8     | ⏳ IN PROGRESS | 1 day    | Simplified Filters                | 3 quick filter toggles, URL sync                | Branch: `feature/phase8-simplified-filters`            |
 | 9     | ⏳ PENDING   | 2-3 days | Virtualization & Performance      | Row virtualization, loading states                  | -                                                         |
 | 10    | ⏳ PENDING   | 3-4 days | Polishing                         | Responsive design, accessibility, animations        | -                                                         |
 | 11    | 🔮 OPTIONAL  | TBD      | Comparison                        | Comparison modal, side-by-side view                 | TBD                                                       |
@@ -32,8 +32,8 @@ A React-based AI Models Explorer application that allows users to browse, search
 ## Total Progress
 
 - **Phases Completed:** 7 out of 11
-- **Progress:** ~64%
-- **Current Phase:** Phase 8 - Column Visibility
+- **Progress:** ~67%
+- **Current Phase:** Phase 8 - Simplified Filters
 
 ---
 
@@ -190,7 +190,7 @@ A React-based AI Models Explorer application that allows users to browse, search
 
 **Duration:** 2-3 days
 
-**Completion Notes**
+### Completion Notes
 
 - **Date Completed:** December 2025
 - **Commit:** 2796e63
@@ -280,7 +280,7 @@ Server-side pagination, search, and filtering
 
 **Duration:** 2-3 days
 
-**Completion Notes**
+### Completion Notes
 
 - **Date Completed:** December 2025
 - **Commit:** 4fa0940
@@ -452,87 +452,35 @@ Server-side pagination, search, and filtering
 
 ---
 
-## Phase 7: Filter Integration
+## Phase 7: Column Visibility
 
 **Status:** ✅ COMPLETED
 
-**Duration:** 3-4 days
+**Duration:** 3.5 days
 
 ### Completion Notes
 
-- **Date Completed:** December 29, 2025
-- **Commit:** `feat(phase7): implement FilterPanel with provider and capability filters`
-- **QA Report:** `docs/qa/phase7-filter-integration.md` - PASS ✅
-- **Files Created:** 5 files
-  - `src/types/filters.ts` - FilterState interface and defaultFilters
-  - `src/components/FilterPanel/ProviderFilter.tsx` - Multi-select provider filter
-  - `src/components/FilterPanel/CapabilityFilter.tsx` - Toggle capability filter
-  - `src/components/FilterPanel/FilterPanel.tsx` - Main container component
-  - `src/components/FilterPanel/index.ts` - Export file
-- **Files Modified:** 4 files
-  - `src/routes/index.tsx` - Integrated FilterPanel with URL sync
-  - `src/lib/api/models.ts` - Updated modelsQueryOptions to accept filter params
-  - `src/types/index.ts` - Added filter types export
-  - `docs/qa/phase7-filter-integration.md` - QA report
-- **Key Achievements:**
-  - FilterPanel with expandable/collapsible design
-  - ProviderFilter with multi-select, search, Select All/Clear All
-  - CapabilityFilter with toggles for reasoning, toolCall, structuredOutput
-  - URL state synchronization for all filter parameters
-  - Server-side filtering via Phase 3.5 API
-  - Active filter count display
-  - "Clear All Filters" button
-  - Integration with search and pagination
-  - Proper SSR with Route.useSearch()
-
-### Objectives
-
-- Implement FilterPanel component
-- Create individual filter components
-- Integrate with TanStack Table's columnFilters
-- Sync filter state to URL
-
-### Tasks
-
-1. **Filter Components**
-   - ProviderFilter (multi-select)
-   - CapabilityFilter (toggles for reasoning, toolCall, structuredOutput)
-   - DateRangeFilter (date picker)
-
-2. **URL State Integration**
-   - Sync filters to URL params
-   - Handle comma-separated values
-   - Read initial state from URL
-
-3. **TanStack Table columnFilters**
-   - Implement columnFilters state
-   - Pass to useReactTable
-   - Handle onColumnFiltersChange
-
-### Deliverables
-
-- Working filter panel
-- URL synchronization for all filters
-- TanStack Table integration
-
-### Key Files
-
-- `src/components/FilterPanel/index.ts`
-
----
-
-## Phase 8: Column Visibility
-
-**Status:** ⏳ PENDING
-
-**Duration:** 2-3 days
+- **Date Completed:** January 1, 2026
+- **Branch:** `feature/phase7-column-visibility`
+- **Implementation:** Column Visibility feature with pure in-memory state
+- **Key Features:**
+  - ColumnVisibilityToggle component (27 columns)
+  - "Show All" and "Reset to Default" buttons
+  - Pure in-memory state (no URL/localStorage)
+  - No SSR/hydration issues
+- **Files Created:** 3 files
+  - `src/types/column-visibility.ts`
+  - `src/components/ColumnVisibilityToggle/ColumnVisibilityToggle.tsx`
+  - `src/components/ColumnVisibilityToggle/index.ts`
+- **Files Modified:** 2 files
+  - `src/routes/index.tsx` - Integrated component
+  - `src/types/index.ts` - Added exports
 
 ### Objectives
 
 - Implement ColumnVisibilityToggle component
 - Show/hide columns UI
-- Sync column visibility to URL
-- Persist defaults to localStorage
+- Use pure in-memory state (no URL sync, no localStorage)
 
 ### Tasks
 
@@ -541,25 +489,136 @@ Server-side pagination, search, and filtering
    - Checkbox for each column
    - Show all / Reset to defaults
 
-2. **URL Synchronization**
-   - Sync column visibility to URL params
-   - Handle comma-separated values
-   - Parse URL on initial load
+2. **Type Definitions**
+   - Create ColumnVisibilityState type
+   - Define ALL_COLUMNS array
+   - Define DEFAULT_VISIBLE_COLUMNS (6 columns by default)
 
-3. **localStorage Persistence**
-   - Save default column visibility
-   - Load preferences on first visit
-   - Handle reset to defaults
+3. **Integration**
+   - Add columnVisibility state to TanStack Table
+   - Integrate with index.tsx
+   - No URL sync or localStorage (simplified approach)
 
 ### Deliverables
 
 - Working column visibility toggle
-- URL sync for column visibility
-- localStorage for defaults
+- Pure in-memory state management
+- Type-safe column definitions
 
 ### Key Files
 
 - `src/components/ColumnVisibilityToggle/index.ts`
+- `src/types/column-visibility.ts`
+
+---
+
+## Phase 8: Simplified Filters
+
+**Status:** ⏳ IN PROGRESS
+
+**Duration:** 1 day (simplified approach)
+
+**Branch:** `feature/phase8-simplified-filters`
+
+### Rationale for Simplified Approach
+
+**Decision:** Implement simplified filters instead of full filter panel
+
+**Reasons:**
+1. **Search Limitations:** Cannot handle boolean fields (reasoning, tool_call), numeric ranges (cost, context), or precise filtering
+2. **Full Filters Removed:** Original Phase 8 (full FilterPanel) was removed in commit 9934c2c for simplification
+3. **MVP Priorities:** Need quick filtering for 80% of use cases with 33% of effort
+4. **Data Scale:** 87+ providers and 500+ models require some filtering capability beyond search
+
+**Trade-offs:**
+- Full filters (3-4 days) vs Simplified filters (1 day)
+- Full filters (provider multi-select, date ranges) vs Simplified (3 toggles only)
+- Full filters (80-100% coverage) vs Simplified (80% coverage for common cases)
+
+### Objectives
+
+- Implement 3 quick filter toggles for most common use cases
+- Integrate with Phase 3.5 server API (already supports filter params)
+- Simple, lightweight UI
+- URL synchronization for filter state
+
+### Tasks
+
+1. **Quick Filter Toggles**
+   - Reasoning capability filter (boolean toggle)
+   - Tool calling capability filter (boolean toggle)
+   - Open weights filter (boolean toggle)
+   - Simple inline UI (no multi-select, no search)
+
+2. **Type Definitions**
+   - Create SimpleFiltersState type
+   - Define available filters
+
+3. **URL Synchronization**
+   - Sync filter state to URL params (?reasoning=true&tool_call=true&open_weights=true)
+   - Read initial state from URL
+   - Update URL on filter change
+
+4. **Server Integration**
+   - Update modelsQueryOptions to accept simple filter params
+   - Connect to Phase 3.5 server API filter parameters
+   - Update TanStack Table columnFilters state
+
+### Deliverables
+
+- Working simplified filters (3 toggles)
+- URL synchronization for filters
+- Server-side filtering integration
+- Clean, simple UI
+
+### Key Files
+
+- `src/components/SimplifiedFilters/SimplifiedFilters.tsx` (new)
+- `src/types/filters.ts` (new)
+- `src/routes/index.tsx` (update)
+
+### Expected Implementation
+
+```typescript
+// Simple inline filters component
+interface SimplifiedFiltersProps {
+  filters: SimpleFiltersState
+  onChange: (filters: SimpleFiltersState) => void
+}
+
+function SimplifiedFilters({ filters, onChange }: SimplifiedFiltersProps) {
+  return (
+    <div className="flex gap-4 items-center">
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={filters.reasoning}
+          onChange={(e) => onChange({ ...filters, reasoning: e.target.checked })}
+        />
+        <span>Reasoning</span>
+      </label>
+      
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={filters.toolCall}
+          onChange={(e) => onChange({ ...filters, toolCall: e.target.checked })}
+        />
+        <span>Tool Calling</span>
+      </label>
+      
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={filters.openWeights}
+          onChange={(e) => onChange({ ...filters, openWeights: e.target.checked })}
+        />
+        <span>Open Weights</span>
+      </label>
+    </div>
+  )
+}
+```
 
 ---
 
@@ -710,7 +769,9 @@ Server-side pagination, search, and filtering
 
 - **Complete table columns:** All 27 columns must match models.dev exactly
 
-- **Comparison feature:** Moved to Phase 11 (optional, TBD)
+- **Simplified filters:** Phase 8 uses 3 quick toggle filters instead of full filter panel
+
+- **Column visibility:** Implemented on `feature/phase7-column-visibility` branch with pure in-memory state
 
 ### Code Style Requirements
 
@@ -740,8 +801,14 @@ Server-side pagination, search, and filtering
 - Document any deviations from the spec
 - Keep the document updated as phases progress
 
+### Branch Management
+
+- `main` - Stable production branch
+- `feature/phase7-column-visibility` - Column visibility feature (completed)
+- `feature/phase8-simplified-filters` - Simplified filters (in progress)
+
 ---
 
-_Last Updated: December 30, 2025_
+_Last Updated: January 1, 2026_
 _Document Owner: Technical Writer_
 _Source: `docs/spec/models-explorer.md` Section 11_
