@@ -8,90 +8,27 @@ Context for agentic coding systems working on this project.
 - When you have zero context about this project, just read `docs/spec/models-explorer.MD` (beware: large document) and `docs/implementation-phases.md`
 - Never try to start dev server, dev server always running at `http://localhost:3000`
 
-## Subagents and Skills
+---
 
-### Specialists / Subagents
+## Specialist Agent Usage
 
-- **github-flow**: creating branches for new features or bug fixes, making commits with clear and concise messages, opening pull requests for code review, and merging changes after approval.
-- **builder**: To implement the code
+### When to Invoke Specialists
+
+- **explore**: For exploring codebase and understanding its structure
 - **researcher**: For gathering documentation, examples, or best practices
-- **qa-specialist**: To perform quality assurance (QA) tasks, such as testing software, identifying defects, or verifying functionality.
+- **builder**: For implementing features, fixing bugs, or making code changes
 - **code-reviewer**: To review code and provide feedback.
-- **technical-writer**: For adding, updating, or fixing documentation
+- **qa-specialist**: Audit code, verifies file structures, and runs tests
+- **git-manager**: creating branches for new features or bug fixes, making commits with clear and concise messages, opening pull requests for code review, and merging changes after approval.
+- **doc-writer**: For adding, updating, or fixing documentation
 
-## Quality Gates
+### 3rd Party Tool Usage Guidelines
 
-Each feature must pass through these checkpoints before merging:
+- **gh_grep**: Search real-world code examples from GitHub
+- **context7**: Fetch up-to-date documentation for libraries
+- **playwright**: UI testing (when applicable)
 
-### Gate 1: Requirements Ready ☐
-- [ ] Clear user requirements documented
-- [ ] Definition of Done specified
-- [ ] Tech constraints identified
-- [ ] Branch created via `@github-flow`
-
-### Gate 2: Design Complete ☐
-- [ ] Implementation plan created
-- [ ] Relevant files explored
-- [ ] Research documented (if needed)
-- [ ] Dependencies identified
-
-### Gate 3: Implementation Ready ☐
-- [ ] Context files provided to `@builder`
-- [ ] Technical specifications clear
-- [ ] Testing approach defined
-
-### Gate 4: Code Complete ☐
-- [ ] Code written
-- [ ] Passes linting (`npm run check`)
-- [ ] Follows project patterns
-- [ ] Self-reviewed
-
-### Gate 5: Review Complete ☐
-- [ ] `@code-reviewer` approved
-- [ ] Issues addressed
-- [ ] Changes committed
-
-### Gate 6: Testing Complete ☐
-- [ ] `@qa-specialist` verified
-- [ ] Tests pass (`npm run test`)
-- [ ] No critical bugs
-
-### Gate 7: Ready for Merge ☐
-- [ ] PR created with clear description
-- [ ] Documentation updated (if needed)
-- [ ] Approved for merge
-
-## Testing Strategy
-
-### QA Involvement Points
-
-1. **Before Implementation**: Test plan creation
-2. **During Implementation**: Component-level testing
-3. **After Implementation**: Integration testing
-4. **Before PR**: Full regression testing
-
-### Test Coverage Requirements
-
-| Scenario | Coverage |
-|----------|----------|
-| Critical paths (authentication, data loading) | 100% |
-| New features | 80%+ |
-| Bug fixes | Specific scenario tests |
-| Refactoring | Existing tests still pass |
-
-## Documentation Requirements
-
-### When Documentation is Required
-
-Document must concise and clear.
-
-| Change | Documentation Needed |
-|--------|---------------------|
-| New feature | Feature doc + API changes |
-| Bug fix | Issue resolution doc |
-| Breaking change | Migration guide |
-| New component | Component usage doc |
-| Complex logic | In-code comments + architecture doc |
+---
 
 ## Tech Stack
 
@@ -198,6 +135,93 @@ src/
 ├── routeTree.gen.ts
 └── styles.css
 ```
+
+---
+
+## Quality Gates
+
+Each feature must pass through these checkpoints before merging:
+
+### Gate 1: Requirements Ready ☐
+
+- [ ] Clear user requirements documented
+- [ ] Definition of Done specified
+- [ ] Tech constraints identified
+- [ ] Branch created via `@git-flow`
+
+### Gate 2: Design Complete ☐
+
+- [ ] Implementation plan created
+- [ ] Relevant files explored
+- [ ] Research documented (if needed)
+- [ ] Dependencies identified
+
+### Gate 3: Implementation Ready ☐
+
+- [ ] Context files provided to `@builder`
+- [ ] Technical specifications clear
+- [ ] Testing approach defined
+
+### Gate 4: Code Complete ☐
+
+- [ ] Code written
+- [ ] Passes linting (`npm run check`)
+- [ ] Follows project patterns
+- [ ] Self-reviewed
+
+### Gate 5: Review Complete ☐
+
+- [ ] `@code-reviewer` approved
+- [ ] Issues addressed
+- [ ] Changes committed
+
+### Gate 6: Testing Complete ☐
+
+- [ ] `@qa-specialist` verified
+- [ ] Tests pass (`npm run test`)
+- [ ] No critical bugs
+
+### Gate 7: Ready for Merge ☐
+
+- [ ] PR created with clear description
+- [ ] Documentation updated (if needed)
+- [ ] Approved for merge
+
+---
+
+## Testing Strategy
+
+### QA Involvement Points
+
+1. **Before Implementation**: Test plan creation
+2. **During Implementation**: Component-level testing
+3. **After Implementation**: Integration testing
+4. **Before PR**: Full regression testing
+
+### Test Coverage Requirements
+
+| Scenario                                      | Coverage                  |
+| --------------------------------------------- | ------------------------- |
+| Critical paths (authentication, data loading) | 100%                      |
+| New features                                  | 80%+                      |
+| Bug fixes                                     | Specific scenario tests   |
+| Refactoring                                   | Existing tests still pass |
+
+---
+
+## Documentation Requirements
+
+### When Documentation is Required
+
+Document must concise and clear.
+
+| Change          | Documentation Needed                |
+| --------------- | ----------------------------------- |
+| New feature     | Feature doc + API changes           |
+| Bug fix         | Issue resolution doc                |
+| Breaking change | Migration guide                     |
+| New component   | Component usage doc                 |
+| Complex logic   | In-code comments + architecture doc |
 
 ---
 
