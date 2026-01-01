@@ -512,6 +512,7 @@ Server-side pagination, search, and filtering
 
 ---
 
+
 ## Phase 8: Simplified Filters
 
 **Status:** ⏳ IN PROGRESS
@@ -535,58 +536,104 @@ Server-side pagination, search, and filtering
 - Full filters (provider multi-select, date ranges) vs Simplified (3 toggles only)
 - Full filters (80-100% coverage) vs Simplified (80% coverage for common cases)
 
+---
+
+## Phase 8 Sub-Phases Breakdown
+
+### Phase 8.1: Filter Type Definitions
+
+**Status:** ⏳ PENDING
+
+**Duration:** 30 minutes
+
+**Estimated:** Morning, Day 1
+
 ### Objectives
 
-- Implement 3 quick filter toggles for most common use cases
-- Integrate with Phase 3.5 server API (already supports filter params)
-- Simple, lightweight UI
-- URL synchronization for filter state
+- Create TypeScript type definitions for simplified filters
+- Define SimpleFiltersState interface
+- Define available filter options
 
 ### Tasks
 
-1. **Quick Filter Toggles**
-   - Reasoning capability filter (boolean toggle)
-   - Tool calling capability filter (boolean toggle)
-   - Open weights filter (boolean toggle)
-   - Simple inline UI (no multi-select, no search)
+1. **Create Filter Types**
+   - Create `src/types/filters.ts`
+   - Define `SimpleFiltersState` interface
+   - Add default filter values
 
-2. **Type Definitions**
-   - Create SimpleFiltersState type
-   - Define available filters
-
-3. **URL Synchronization**
-   - Sync filter state to URL params (?reasoning=true&tool_call=true&open_weights=true)
-   - Read initial state from URL
-   - Update URL on filter change
-
-4. **Server Integration**
-   - Update modelsQueryOptions to accept simple filter params
-   - Connect to Phase 3.5 server API filter parameters
-   - Update TanStack Table columnFilters state
+2. **Type Exports**
+   - Add filter types to `src/types/index.ts`
+   - Ensure proper TypeScript exports
 
 ### Deliverables
 
-- Working simplified filters (3 toggles)
-- URL synchronization for filters
-- Server-side filtering integration
+- `src/types/filters.ts` with complete type definitions
+- Type-safe filter state management
+
+### Key Files
+
+- `src/types/filters.ts` (new)
+- `src/types/index.ts` (update)
+
+---
+
+### Phase 8.2: SimplifiedFilters Component
+
+**Status:** ⏳ PENDING
+
+**Duration:** 1.5 hours
+
+**Estimated:** Mid-day, Day 1
+
+### Objectives
+
+- Create SimplifiedFilters component with 3 quick toggle filters
+- Simple, lightweight UI
+- Inline layout (no dropdowns/panels)
+
+### Tasks
+
+1. **Component Structure**
+   - Create `src/components/SimplifiedFilters/SimplifiedFilters.tsx`
+   - Define component props interface
+   - Implement 3 checkbox toggles
+
+2. **Filter Toggles**
+   - Reasoning capability toggle
+   - Tool calling capability toggle
+   - Open weights toggle
+   - Simple checkbox design (no multi-select, no search)
+
+3. **Component Export**
+   - Create `src/components/SimplifiedFilters/index.ts`
+   - Export component for easy importing
+
+### Deliverables
+
+- SimplifiedFilters component with 3 toggles
 - Clean, simple UI
+- Proper TypeScript types
 
 ### Key Files
 
 - `src/components/SimplifiedFilters/SimplifiedFilters.tsx` (new)
-- `src/types/filters.ts` (new)
-- `src/routes/index.tsx` (update)
+- `src/components/SimplifiedFilters/index.ts` (new)
 
 ### Expected Implementation
 
 ```typescript
-// Simple inline filters component
+// src/components/SimplifiedFilters/SimplifiedFilters.tsx
+import type { SimpleFiltersState } from '@/types/filters'
+
 interface SimplifiedFiltersProps {
   filters: SimpleFiltersState
   onChange: (filters: SimpleFiltersState) => void
 }
 
-function SimplifiedFilters({ filters, onChange }: SimplifiedFiltersProps) {
+export function SimplifiedFilters({
+  filters,
+  onChange,
+}: SimplifiedFiltersProps) {
   return (
     <div className="flex gap-4 items-center">
       <label className="flex items-center gap-2">
@@ -620,6 +667,200 @@ function SimplifiedFilters({ filters, onChange }: SimplifiedFiltersProps) {
 }
 ```
 
+---
+
+### Phase 8.3: URL State Management
+
+**Status:** ⏳ PENDING
+
+**Duration:** 1.5 hours
+
+**Estimated:** Mid-day, Day 1
+
+### Objectives
+
+- Integrate filters with TanStack Router URL state
+- Sync filter state to URL params
+- Read initial state from URL
+
+### Tasks
+
+1. **Update Search Schema**
+   - Add filter parameters to `indexSearchSchema` in `src/routes/index.tsx`
+   - Support: `reasoning`, `toolCall`, `openWeights`
+
+2. **URL State Integration**
+   - Use `Route.useSearch()` to read filter state
+   - Use `Route.useNavigate()` to update URL on filter change
+   - Handle boolean parsing from URL strings
+
+3. **State Synchronization**
+   - Sync filter toggles to URL on change
+   - Initialize filter state from URL on component mount
+   - Handle URL updates without causing infinite loops
+
+### Deliverables
+
+- URL parameter support for filters
+- Bidirectional URL-state sync
+- Shareable filter URLs
+
+### Key Files
+
+- `src/routes/index.tsx` (update)
+
+### Expected URL Format
+
+```
+/models?reasoning=true&tool_call=true&open_weights=false
+```
+
+---
+
+### Phase 8.4: Server-Side Filtering Integration
+
+**Status:** ⏳ PENDING
+
+**Duration:** 1.5 hours
+
+**Estimated:** Afternoon, Day 1
+
+### Objectives
+
+- Connect filters to Phase 3.5 server API
+- Update query to accept filter parameters
+- Integrate with TanStack Table columnFilters
+
+### Tasks
+
+1. **Update API Query**
+   - Update `modelsQueryOptions` to accept filter parameters
+   - Pass filters to `getModels` server function
+   - Ensure filter parameters are included in queryKey for caching
+
+2. **TanStack Table Integration**
+   - Update table state to include filters
+   - Set `onColumnFiltersChange` handler
+   - Configure `manualFiltering: true` (already done)
+
+3. **Component Integration**
+   - Add SimplifiedFilters to UI
+   - Connect filter state to table
+   - Ensure proper reactivity
+
+### Deliverables
+
+- Server-side filtering working
+- TanStack Table integration complete
+- Filter state properly cached
+
+### Key Files
+
+- `src/routes/index.tsx` (update)
+- `src/lib/api/models.ts` (update - verify filter params)
+
+---
+
+### Phase 8.5: Testing and Quality Assurance
+
+**Status:** ⏳ PENDING
+
+**Duration:** 2 hours
+
+**Estimated:** End of Day 1
+
+### Objectives
+
+- Test all filter functionality
+- Verify URL synchronization
+- Ensure server-side filtering works correctly
+- Create QA documentation
+
+### Tasks
+
+1. **Functional Testing**
+   - Test each filter toggle independently
+   - Test multiple filters combined
+   - Test URL state synchronization
+   - Test filter clearing (uncheck all)
+
+2. **Edge Cases**
+   - Test with empty filter set (all unchecked)
+   - Test with all filters checked
+   - Test URL bookmarking and sharing
+   - Test page navigation with filters active
+
+3. **QA Documentation**
+   - Create `docs/qa/phase8-simplified-filters.md`
+   - Document test results
+   - Note any issues or edge cases
+
+### Deliverables
+
+- All functionality tested and working
+- QA report created
+- Edge cases handled
+
+### Key Files
+
+- `docs/qa/phase8-simplified-filters.md` (new)
+
+---
+
+## Phase 8 Summary
+
+### Total Timeline: 1 Day
+
+| Sub-Phase | Duration | Focus Area | Status |
+|-----------|----------|-------------|--------|
+| 8.1 | 30 min | Filter type definitions | ⏳ PENDING |
+| 8.2 | 1.5 hours | SimplifiedFilters component | ⏳ PENDING |
+| 8.3 | 1.5 hours | URL state management | ⏳ PENDING |
+| 8.4 | 1.5 hours | Server-side filtering | ⏳ PENDING |
+| 8.5 | 2 hours | Testing and QA | ⏳ PENDING |
+| **Total** | **7 hours** (1 day) | | |
+
+### Deliverables
+
+- Filter type definitions
+- SimplifiedFilters component (3 toggles)
+- URL synchronization for filters
+- Server-side filtering integration
+- Complete QA documentation
+
+### Key Files Created/Modified
+
+**New Files:**
+- `src/types/filters.ts`
+- `src/components/SimplifiedFilters/SimplifiedFilters.tsx`
+- `src/components/SimplifiedFilters/index.ts`
+- `docs/qa/phase8-simplified-filters.md`
+
+**Modified Files:**
+- `src/types/index.ts`
+- `src/routes/index.tsx`
+- `src/lib/api/models.ts` (if needed)
+
+### Success Criteria
+
+✅ All 3 filter toggles work independently  
+✅ Filters combine correctly (multiple active at once)  
+✅ URL updates on filter change (?reasoning=true&tool_call=true&open_weights=false)  
+✅ URL initializes filters on page load  
+✅ Server-side filtering reduces result set correctly  
+✅ TanStack Table re-renders with filtered data  
+✅ Clearing all filters returns full result set  
+✅ QA report documents all test cases  
+
+### Reference Implementation Pattern
+
+Following pattern from Phase 7 (Column Visibility):
+- Sub-phase breakdown for incremental progress
+- Clear deliverables for each sub-phase
+- Test/QA at end of each sub-phase
+- Commit messages following `feat(phase8.X):` format
+
+---
 ---
 
 ## Phase 9: Virtualization & Performance
