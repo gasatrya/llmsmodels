@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker'
-
 export type Person = {
   id: number
   firstName: string
@@ -11,6 +9,31 @@ export type Person = {
   subRows?: Array<Person>
 }
 
+const names = [
+  { first: 'John', last: 'Doe' },
+  { first: 'Jane', last: 'Smith' },
+  { first: 'Bob', last: 'Johnson' },
+  { first: 'Alice', last: 'Williams' },
+  { first: 'Charlie', last: 'Brown' },
+  { first: 'Diana', last: 'Miller' },
+  { first: 'Eve', last: 'Davis' },
+  { first: 'Frank', last: 'Garcia' },
+  { first: 'Grace', last: 'Martinez' },
+  { first: 'Henry', last: 'Anderson' },
+  { first: 'Ivy', last: 'Taylor' },
+  { first: 'Jack', last: 'Thomas' },
+  { first: 'Kate', last: 'Jackson' },
+  { first: 'Leo', last: 'White' },
+  { first: 'Mia', last: 'Harris' },
+  { first: 'Noah', last: 'Martin' },
+  { first: 'Olivia', last: 'Thompson' },
+  { first: 'Paul', last: 'Robinson' },
+  { first: 'Quinn', last: 'Clark' },
+  { first: 'Rose', last: 'Rodriguez' },
+]
+
+const statuses: Array<Person['status']> = ['relationship', 'complicated', 'single']
+
 const range = (len: number) => {
   const arr: Array<number> = []
   for (let i = 0; i < len; i++) {
@@ -19,19 +42,18 @@ const range = (len: number) => {
   return arr
 }
 
-const newPerson = (num: number): Person => {
+const newPerson = (num: number, depth: number): Person => {
+  const nameIndex = num % names.length
+  const name = names[nameIndex]
   return {
     id: num,
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    age: faker.number.int(40),
-    visits: faker.number.int(1000),
-    progress: faker.number.int(100),
-    status: faker.helpers.shuffle<Person['status']>([
-      'relationship',
-      'complicated',
-      'single',
-    ])[0],
+    firstName: name.first,
+    lastName: name.last,
+    age: 20 + (num * 3) % 40,
+    visits: (num * 7) % 1000,
+    progress: (num * 11) % 100,
+    status: statuses[num % statuses.length],
+    subRows: depth < 2 ? undefined : undefined,
   }
 }
 
@@ -40,7 +62,7 @@ export function makeData(...lens: Array<number>) {
     const len = lens[depth]
     return range(len).map((index): Person => {
       return {
-        ...newPerson(index),
+        ...newPerson(index, depth),
         subRows: lens[depth + 1] ? makeDataLevel(depth + 1) : undefined,
       }
     })

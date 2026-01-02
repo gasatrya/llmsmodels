@@ -6,14 +6,11 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run",
     "lint": "eslint",
     "format": "prettier",
-    "check": "prettier --write . && eslint --fix",
-    "prepare": "husky install"
+    "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
-    "@faker-js/faker": "^10.1.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/match-sorter-utils": "^8.19.4",
     "@tanstack/react-devtools": "^0.9.0",
@@ -38,27 +35,12 @@
     "@netlify/vite-plugin-tanstack-start": "^1.2.6",
     "@tanstack/devtools-vite": "^0.4.0",
     "@tanstack/eslint-config": "^0.3.4",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/react": "^16.3.1",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
-    "husky": "^9.1.7",
-    "jsdom": "^27.4.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
-    "vite": "^7.3.0",
-    "vitest": "^4.0.16",
-    "web-vitals": "^5.1.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "npm run lint",
-      "npm run format"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "npm run format"
-    ]
+    "vite": "^7.3.0"
   }
 }
