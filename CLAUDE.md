@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 AI Models Explorer - A React-based web application for browsing and comparing 500+ AI models from various providers. Built with the full TanStack ecosystem (Start, Router, Query, Table, Virtual) for type-safe, performant server-side rendering with 24-hour caching.
 
-**Key Architecture Decision:** Server-side pagination, filtering, and fuzzy search via a custom API layer (`src/lib/api/models.ts`) that caches models.dev data in memory to avoid fetching the massive ~5MB API JSON on every request.
+**Key Architecture Decision:** Server-side pagination, filtering, and fuzzy search via a custom API layer (`src/lib/models.ts`) that caches models.dev data in memory to avoid fetching the massive ~5MB API JSON on every request.
 
 ## Development Commands
 
@@ -50,13 +50,13 @@ npm run format
 
 ```typescript
 // CORRECT: Use the cached server API
-import { getModels, modelsQueryOptions } from '@/lib/api/models'
+import { getModels, modelsQueryOptions } from '@/lib/models'
 
 // WRONG: Direct fetch
 fetch('https://models.dev/api.json') // DON'T DO THIS
 ```
 
-The server API (`src/lib/api/models.ts`) implements:
+The server API (`src/lib/models.ts`) implements:
 - Module-level in-memory cache (24h TTL)
 - Fuse.js fuzzy search on modelName, providerName, modelFamily
 - Server-side pagination (page, limit)
@@ -129,7 +129,7 @@ TanStack Router (validateSearch → loaderDeps → loader)
     ↓
 TanStack Query (ensureQueryData with modelsQueryOptions)
     ↓
-Server Function (getModels in src/lib/api/models.ts)
+Server Function (getModels in src/lib/models.ts)
     ↓
   ├─► Check module-level cache (24h TTL)
   ├─► Fetch from models.dev if cache miss (~5MB JSON)
@@ -147,7 +147,7 @@ SPA: Client hydrates and caches with TanStack Query (24h staleTime)
 
 | Purpose | Location |
 |---------|----------|
-| Server API (cache, search, pagination) | `src/lib/api/models.ts` |
+| Server API (cache, search, pagination) | `src/lib/models.ts` |
 | Data transformation | `src/lib/models-transform.ts` |
 | Type definitions | `src/types/models.ts` |
 | Router with QueryClient integration | `src/router.tsx` |
