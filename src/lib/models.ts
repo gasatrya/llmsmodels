@@ -196,9 +196,9 @@ export function clearModelsCache(): void {
 }
 
 // ============================================
-// Main server function with Zod validation
+// Main server function with Zod validation and Netlify Durable Cache
 // ============================================
-export const getModels = createServerFn({ method: 'GET' })
+export const getModels = createServerFn({ method: 'GET', response: 'raw' })
   .inputValidator(GetModelsSchema)
   .handler(async ({ data }: { data: GetModelsInput }) => {
     try {
@@ -215,10 +215,23 @@ export const getModels = createServerFn({ method: 'GET' })
         data.limit,
       )
 
-      return {
+      const responseData: GetModelsResponse = {
         data: paginated,
         pagination: meta,
       }
+
+      // Return Response with Netlify Durable Cache headers
+      return new Response(JSON.stringify(responseData), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          // Netlify Durable Cache: 60s edge, 24h stale-while-revalidate
+          'Netlify-CDN-Cache-Control':
+            'public, max-age=60, stale-while-revalidate=86400, durable',
+          // Standard Cache-Control for browser caching
+          'Cache-Control': 'public, max-age=60, stale-while-revalidate=86400',
+        },
+      })
     } catch (error) {
       console.error('[getModels Error]:', {
         error: error instanceof Error ? error.message : String(error),
@@ -227,7 +240,17 @@ export const getModels = createServerFn({ method: 'GET' })
         input: data,
       })
 
-      throw new Error('Failed to fetch models. Please try again.')
+      // CRITICAL: Never cache error responses
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch models. Please try again.' }),
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+          },
+        },
+      )
     }
   })
 
@@ -254,6 +277,15 @@ export const modelsQueryOptions = (
       params.toolCall,
       params.openWeights,
     ],
-    queryFn: () => getModels({ data: params }),
+    queryFn: async () => {
+      const response = await getModels({ data: params })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch models: ${response.statusText}`)
+      }
+
+      const data = (await response.json()) as GetModelsResponse
+      return data
+    },
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
   })
