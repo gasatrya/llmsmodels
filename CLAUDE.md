@@ -43,6 +43,40 @@ npm run format
 - **Language:** TypeScript (strict mode)
 - **Search:** Fuse.js for fuzzy search on server
 
+## Issue Tracker
+
+This project uses **beads** for issue tracking (not GitHub Issues). Use `beads` skill to understand how it works. Quick commands:
+
+```bash
+bd ready --json                                                                 # Find available work
+bd create "Issue title" -t bug|feature|task|epic -p 0-4 -d "Description" --json # Create new issue
+bd show <id> [<id>...] --json                                                   # Get issue details (supports multiple IDs)
+bd update <id> [<id>...] --status in_progress --json                            # Update one or more issues
+bd close <id> [<id>...] --reason "Done" --json                                  # Complete work (supports multiple IDs)
+bd reopen <id> [<id>...] --reason "Reopening" --json                            # Reopen closed issues (supports multiple IDs)
+bd sync                                                                         # Sync with git
+```
+
+## Worktree Manager
+
+- Use `git-worktree-claude` skill for managing git worktree
+
+## Session Completion Workflow
+
+**MANDATORY:** When ending a work session, you MUST push all changes to remote.
+
+1. File issues for remaining work (via `bd`)
+2. Run quality gates: `npm run lint && npm run check-types`
+3. Update issue status via `bd`
+4. Push to remote:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. Verify: All changes committed AND pushed
+
 ## Critical Architecture Rules
 
 ### 1. API Data Access
