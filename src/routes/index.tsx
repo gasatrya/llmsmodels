@@ -459,8 +459,8 @@ function IndexPage() {
   // Query with pagination
   const modelsQuery = useQuery({
     queryKey: ['models', pagination, globalFilter, filters],
-    queryFn: () =>
-      getModels({
+    queryFn: async () => {
+      const response = await getModels({
         data: {
           page: pagination.pageIndex + 1,
           limit: pagination.pageSize,
@@ -469,7 +469,15 @@ function IndexPage() {
           toolCall: filters.toolCall,
           openWeights: filters.openWeights,
         },
-      }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch models: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data
+    },
     placeholderData: keepPreviousData,
     initialData: ssrdata,
   })
