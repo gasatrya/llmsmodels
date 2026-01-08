@@ -25,7 +25,8 @@ npm run check        # prettier --write + eslint --fix
 ```
 
 **Code Style Requirements:**
-- Single quotes only, no semicolons, trailing commas always
+
+- Single quotes only, no semicolons
 - TypeScript strict mode enabled
 - Array notation: `Array<Type>` NOT `Type[]`
 - Path aliases: `@/*` → `src/*`
