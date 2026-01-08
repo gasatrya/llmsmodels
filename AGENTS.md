@@ -1,40 +1,51 @@
-# Agent Instructions
+# AGENTS.md
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This file provides guidelines for AI agents working in this repository.
 
-## Quick Reference
+## Project Overview
+
+AI Models Explorer - A React-based web application for browsing and comparing 500+ AI models from various providers. Built with the full TanStack ecosystem (Start, Router, Query, Table, Virtual) for type-safe, performant server-side rendering with 24-hour caching.
+
+**Key Architecture Decision:** Server-side pagination, filtering, and fuzzy search via a custom API layer (`src/lib/models.ts`) that uses Netlify Durable Cache to persist responses across cold starts, avoiding repeated 5MB API fetches from models.dev.
+
+## Development Commands
 
 ```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --status in_progress  # Claim work
-bd close <id>         # Complete work
-bd sync               # Sync with git
+# Development server (always running at http://localhost:3000)
+npm run dev
+
+# Build production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint and format (use before commits)
+npm run check        # prettier --write + eslint --fix
 ```
 
-## Landing the Plane (Session Completion)
+**Code Style Requirements:**
+- Single quotes only, no semicolons, trailing commas always
+- TypeScript strict mode enabled
+- Array notation: `Array<Type>` NOT `Type[]`
+- Path aliases: `@/*` → `src/*`
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+## Tech Stack
 
-**MANDATORY WORKFLOW:**
+- **Framework:** React 19 + TanStack Start (SSR + server functions)
+- **Build Tool:** Vite
+- **Routing:** TanStack Router (file-based with URL state)
+- **Data Fetching:** TanStack Query v5 with 24h caching
+- **Table:** TanStack Table with manual pagination/filtering
+- **Styling:** Tailwind CSS v4
+- **Language:** TypeScript (strict mode)
+- **Search:** Fuse.js for fuzzy search on server
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+## Worktree Manager
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- Use `git-worktree-runner` skill for managing git worktree
 
+## Important Notes
+
+- **API Sample:** Check `docs/sample-api-models-dev.json` for API structure - never fetch live API for exploration
+- **Dev Server:** Always running at `http://localhost:3000` - don't start it
