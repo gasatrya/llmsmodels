@@ -44,6 +44,7 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
                   style={{
                     width: header.getSize(),
                     minWidth: header.getSize(),
+                    maxWidth: header.getSize(),
                   }}
                 >
                   {header.column.getCanSort() ? (
@@ -94,6 +95,7 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
                     style={{
                       width: cell.column.getSize(),
                       minWidth: cell.column.getSize(),
+                      maxWidth: cell.column.getSize(),
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

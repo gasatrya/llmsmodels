@@ -7,7 +7,7 @@ export const Route = createFileRoute('/about')({
 function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen flex flex-col font-sans text-black">
-      <header className="mb-12 pt-20">
+      <header className="mb-12 pt-12">
         <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-4 text-black drop-shadow-[4px_4px_0px_rgba(255,230,0,1)]">
           About <span className="bg-black text-white px-2">LLMsModels</span>
         </h1>

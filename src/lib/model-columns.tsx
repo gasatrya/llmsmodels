@@ -147,7 +147,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
 
   // 11. Input Cost
   columnHelper.accessor('inputCost', {
-    header: 'Input',
+    header: 'Input Cost',
     cell: (info) => (
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
@@ -157,12 +157,12 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
 
   // 12. Output Cost
   columnHelper.accessor('outputCost', {
-    header: 'Output',
+    header: 'Output Cost',
     cell: (info) => (
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 80,
+    size: 100,
   }) as ColumnDef<FlattenedModel>,
 
   // 13. Reasoning Cost

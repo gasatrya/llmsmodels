@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import {
-  useSuspenseQuery,
-} from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -22,6 +20,7 @@ import { ModelList } from '@/components/ModelList'
 import { SearchBar } from '@/components/SearchBar'
 import { SimplifiedFilters } from '@/components/SimplifiedFilters'
 import { ColumnVisibilityToggle } from '@/components/ColumnVisibilityToggle'
+import { SEOContent } from '@/components/SEOContent'
 
 // Define search params schema - ONLY for deep linking/initial state
 const indexSearchSchema = z.object({
@@ -158,12 +157,14 @@ function IndexPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen flex flex-col font-sans text-black">
-      <header className="mb-8 flex-none pt-20">
+      <header className="mb-8 flex-none pt-12">
         <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-4 text-black drop-shadow-[4px_4px_0px_rgba(255,230,0,1)]">
-          Discover State-of-the-Art <span className="bg-black text-white px-2">AI Models</span>
+          Discover State-of-the-Art{' '}
+          <span className="bg-black text-white px-2">AI Models</span>
         </h1>
         <p className="text-xl text-black font-bold max-w-2xl leading-relaxed border-l-8 border-black pl-4">
-          The most comprehensive database to compare {totalCount.toLocaleString()} open-weights and proprietary LLMs. 
+          The most comprehensive database to compare{' '}
+          {totalCount.toLocaleString()} open-weights and proprietary LLMs.
           Filter by reasoning capabilities, tool use, and more.
         </p>
       </header>
@@ -183,7 +184,7 @@ function IndexPage() {
         </div>
 
         {/* Filter Controls */}
-        <div className="flex-none">
+        <div className="flex-none mb-16">
           <SimplifiedFilters
             filters={filters}
             onChange={setFilters}
@@ -191,11 +192,12 @@ function IndexPage() {
           />
         </div>
 
-
         {/* Table Area - fixed height for scrolling */}
         {table.getRowModel().rows.length === 0 ? (
           <div className="flex items-center justify-center py-20 border-4 border-dashed border-black bg-gray-50">
-            <div className="text-black font-bold text-lg uppercase">No models found matching your criteria</div>
+            <div className="text-black font-bold text-lg uppercase">
+              No models found matching your criteria
+            </div>
           </div>
         ) : (
           <div className="h-[600px] relative">
@@ -205,35 +207,7 @@ function IndexPage() {
       </div>
 
       {/* SEO Long Description Section - Outside table wrapper */}
-      <section className="mt-8 px-8 prose prose-gray max-w-none pb-12 border-t-4 border-black pt-12 bg-gray-50">
-        <h2 className="text-4xl font-black text-black uppercase mb-6 inline-block bg-pink-300 px-2 py-1 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          Everything You Need to Know About LLM Models
-        </h2>
-        
-        <div className="grid md:grid-cols-2 gap-12 text-black">
-          <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">Understanding Open Weights vs. Proprietary Models</h3>
-            <p className="mb-4">
-              When choosing a Large Language Model (LLM), one of the first decisions is between open-weights and proprietary models. 
-              <strong>Open-weights models</strong> (often called "open source" loosely) allow you to run the model on your own infrastructure, giving you full control over privacy and customization. 
-              Popular examples include Llama 3, Mistral, and Gemma.
-            </p>
-            <p>
-              <strong>Proprietary models</strong>, like GPT-4 or Claude 3.5 Sonnet, are accessed via API. They often offer state-of-the-art performance but come with usage costs and data privacy considerations.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">Reasoning Capabilities & Tool Use</h3>
-            <p className="mb-4">
-              Modern LLMs are evolving beyond text generation. <strong>Reasoning models</strong> (like OpenAI o1 or DeepSeek R1) uses "chain of thought" to solve complex logic, math, and coding problems with higher accuracy.
-            </p>
-            <p>
-              <strong>Tool Use</strong> (or Function Calling) is critical for building agents. Models with high "Tool Call" capabilities can reliably interact with external APIs, databases, and software environments, making them the engines of agentic workflows.
-            </p>
-          </div>
-        </div>
-      </section>
+      <SEOContent />
     </div>
   )
 }
