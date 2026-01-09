@@ -39,8 +39,14 @@ function AboutPage() {
           </h2>
           <p className="text-lg font-medium leading-relaxed mb-4">
             This project was created and is maintained by{' '}
-            <span className="font-black italic underline decoration-4 decoration-yellow-400">
-              Satrya
+            <span className="font-black">
+              <a
+                href="https://x.com/satrya"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Satrya
+              </a>
             </span>
             .
           </p>

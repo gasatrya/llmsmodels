@@ -30,7 +30,6 @@ export interface ColumnVisibilityOptions {
  * Order matches the column definitions in src/routes/index.tsx
  */
 export const ALL_COLUMNS: Array<ColumnDefinition> = [
-  { id: 'select', label: 'Select' },
   { id: 'providerName', label: 'Provider' },
   { id: 'modelName', label: 'Model' },
   { id: 'modelFamily', label: 'Family' },
@@ -54,7 +53,6 @@ export const ALL_COLUMNS: Array<ColumnDefinition> = [
   { id: 'temperature', label: 'Temperature' },
   { id: 'weights', label: 'Weights' },
   { id: 'knowledge', label: 'Knowledge' },
-  { id: 'selected', label: 'Selected' },
   { id: 'releaseDate', label: 'Released' },
   { id: 'lastUpdated', label: 'Updated' },
 ]
@@ -64,7 +62,6 @@ export const ALL_COLUMNS: Array<ColumnDefinition> = [
  * These columns are shown by default when no user preferences exist
  */
 export const DEFAULT_VISIBLE_COLUMNS: Array<string> = [
-  'select',
   'modelName',
   'providerName',
   'modelId',

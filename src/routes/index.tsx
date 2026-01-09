@@ -138,6 +138,9 @@ function IndexPage() {
   const table = useReactTable({
     data: filteredData,
     columns: modelColumns,
+    defaultColumn: {
+      minSize: 50, // Ensure columns don't shrink below this width
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

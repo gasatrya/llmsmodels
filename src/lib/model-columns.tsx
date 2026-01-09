@@ -7,6 +7,7 @@ import {
   Mic,
   Type,
   Video,
+  X,
 } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -21,9 +22,13 @@ const BooleanCell = ({
 }): React.ReactElement => {
   const boolValue = value ?? false
   return (
-    <span className={boolValue ? 'text-green-600' : 'text-gray-400'}>
-      {boolValue ? '✓' : '✗'}
-    </span>
+    <div className="flex items-center">
+      {boolValue ? (
+        <Check className="w-4 h-4 text-green-600 stroke-[3px]" />
+      ) : (
+        <X className="w-4 h-4 text-gray-300 stroke-[3px]" />
+      )}
+    </div>
   )
 }
 
@@ -153,6 +158,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     cell: (info) => info.getValue(),
     enableSorting: true,
     size: 120,
+    minSize: 120,
   }) as ColumnDef<FlattenedModel>,
 
   // 3. Model Name (bold)
@@ -161,6 +167,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     cell: (info) => <span className="font-semibold">{info.getValue()}</span>,
     enableSorting: true,
     size: 200,
+    minSize: 200,
   }) as ColumnDef<FlattenedModel>,
 
   // 4. Model Family
@@ -169,6 +176,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     cell: (info) => info.getValue(),
     enableSorting: true,
     size: 150,
+    minSize: 150,
   }) as ColumnDef<FlattenedModel>,
 
   // 5. Provider ID (monospace)
@@ -178,7 +186,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{info.getValue()}</span>
     ),
     enableSorting: true,
-    size: 120,
+    size: 140,
+    minSize: 140,
   }) as ColumnDef<FlattenedModel>,
 
   // 6. Model ID (monospace)
@@ -187,6 +196,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     cell: (info) => <CopyableId id={info.getValue()} />,
     enableSorting: true,
     size: 250,
+    minSize: 250,
   }) as ColumnDef<FlattenedModel>,
 
   // 7. Tool Call
@@ -194,7 +204,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     header: 'Tool Call',
     cell: (info) => <BooleanCell value={info.getValue()} />,
     enableSorting: true,
-    size: 80,
+    size: 130,
+    minSize: 130,
   }) as ColumnDef<FlattenedModel>,
 
   // 8. Reasoning
@@ -202,7 +213,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     header: 'Reasoning',
     cell: (info) => <BooleanCell value={info.getValue()} />,
     enableSorting: true,
-    size: 100,
+    size: 130,
+    minSize: 130,
   }) as ColumnDef<FlattenedModel>,
 
   // 9. Input Modalities (icons)
@@ -212,7 +224,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <ModalityIcons modalities={info.getValue<Array<string>>()} />
     ),
     enableSorting: false,
-    size: 150,
+    size: 140,
+    minSize: 140,
   }) as ColumnDef<FlattenedModel>,
 
   // 10. Output Modalities (icons)
@@ -223,6 +236,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     ),
     enableSorting: false,
     size: 150,
+    minSize: 150,
   }) as ColumnDef<FlattenedModel>,
 
   // 11. Input Cost
@@ -232,7 +246,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 80,
+    size: 110,
+    minSize: 110,
   }) as ColumnDef<FlattenedModel>,
 
   // 12. Output Cost
@@ -242,7 +257,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 115,
+    minSize: 115,
   }) as ColumnDef<FlattenedModel>,
 
   // 13. Reasoning Cost
@@ -252,7 +268,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 120,
+    size: 135,
+    minSize: 135,
   }) as ColumnDef<FlattenedModel>,
 
   // 14. Cache Read Cost
@@ -262,7 +279,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 115,
+    minSize: 115,
   }) as ColumnDef<FlattenedModel>,
 
   // 15. Cache Write Cost
@@ -272,7 +290,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 115,
+    minSize: 115,
   }) as ColumnDef<FlattenedModel>,
 
   // 16. Audio Input Cost
@@ -282,7 +301,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 115,
+    minSize: 115,
   }) as ColumnDef<FlattenedModel>,
 
   // 17. Audio Output Cost
@@ -292,7 +312,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 120,
+    minSize: 120,
   }) as ColumnDef<FlattenedModel>,
 
   // 18. Context Limit
@@ -302,7 +323,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 80,
+    size: 100,
+    minSize: 100,
   }) as ColumnDef<FlattenedModel>,
 
   // 19. Input Limit
@@ -312,7 +334,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 110,
+    minSize: 110,
   }) as ColumnDef<FlattenedModel>,
 
   // 20. Output Limit
@@ -322,7 +345,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 115,
+    minSize: 115,
   }) as ColumnDef<FlattenedModel>,
 
   // 21. Structured Output
@@ -330,7 +354,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     header: 'Structured Output',
     cell: (info) => <BooleanCell value={info.getValue()} />,
     enableSorting: true,
-    size: 120,
+    size: 160,
+    minSize: 160,
   }) as ColumnDef<FlattenedModel>,
 
   // 22. Temperature
@@ -338,7 +363,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     header: 'Temperature',
     cell: (info) => <BooleanCell value={info.getValue()} />,
     enableSorting: true,
-    size: 100,
+    size: 140,
+    minSize: 140,
   }) as ColumnDef<FlattenedModel>,
 
   // 23. Weights (Open/Closed badge)
@@ -358,7 +384,8 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       )
     },
     enableSorting: true,
-    size: 80,
+    size: 100,
+    minSize: 100,
   }) as ColumnDef<FlattenedModel>,
 
   // 24. Knowledge
@@ -367,29 +394,24 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     cell: (info) => info.getValue() ?? '-',
     enableSorting: true,
     size: 150,
+    minSize: 150,
   }) as ColumnDef<FlattenedModel>,
 
-  // 25. Selected (internal use - not displayed in UI but needed for selection)
-  columnHelper.accessor('selected', {
-    header: '',
-    cell: () => null,
-    enableSorting: false,
-    size: 0,
-  }) as ColumnDef<FlattenedModel>,
-
-  // 26. Release Date
+  // 25. Release Date
   columnHelper.accessor('releaseDate', {
     header: 'Released',
     cell: (info) => formatDate(info.getValue()),
     enableSorting: true,
-    size: 100,
+    size: 180,
+    minSize: 180,
   }) as ColumnDef<FlattenedModel>,
 
-  // 27. Last Updated
+  // 26. Last Updated
   columnHelper.accessor('lastUpdated', {
     header: 'Updated',
     cell: (info) => formatDate(info.getValue()),
     enableSorting: true,
-    size: 100,
+    size: 180,
+    minSize: 180,
   }) as ColumnDef<FlattenedModel>,
 ]

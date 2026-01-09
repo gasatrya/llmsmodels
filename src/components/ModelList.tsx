@@ -33,7 +33,10 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
       ref={parentRef}
       className="h-full overflow-auto border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none"
     >
-      <table className="min-w-full table-fixed">
+      <table
+        className="table-fixed"
+        style={{ width: table.getTotalSize(), minInlineSize: '100%' }}
+      >
         <thead className="bg-[#FEF08A] sticky top-0 z-10 border-b-4 border-black">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -42,9 +45,9 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
                   key={header.id}
                   className="px-4 py-4 text-left text-sm font-black text-black uppercase tracking-wider border-r-2 border-black last:border-r-0"
                   style={{
-                    width: header.getSize(),
-                    minWidth: header.getSize(),
-                    maxWidth: header.getSize(),
+                    width: `${header.getSize()}px`,
+                    minWidth: `${header.getSize()}px`,
+                    maxWidth: `${header.getSize()}px`,
                   }}
                 >
                   {header.column.getCanSort() ? (
@@ -93,9 +96,9 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
                     key={cell.id}
                     className="px-4 py-3 text-sm whitespace-nowrap overflow-hidden text-ellipsis font-medium border-r-2 border-black last:border-r-0"
                     style={{
-                      width: cell.column.getSize(),
-                      minWidth: cell.column.getSize(),
-                      maxWidth: cell.column.getSize(),
+                      width: `${cell.column.getSize()}px`,
+                      minWidth: `${cell.column.getSize()}px`,
+                      maxWidth: `${cell.column.getSize()}px`,
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
