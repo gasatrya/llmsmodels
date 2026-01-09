@@ -1,6 +1,18 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/about')({
+  head: () => ({
+    meta: [
+      {
+        title: 'About - LLMsModels',
+      },
+      {
+        name: 'description',
+        content:
+          'Learn more about LLMsModels, the most comprehensive database for AI models, its creator Satrya, and the data sources that power it.',
+      },
+    ],
+  }),
   component: AboutPage,
 })
 

@@ -69,6 +69,23 @@ export const Route = createFileRoute('/')({
   loader: async ({ context }) => {
     return context.queryClient.ensureQueryData(modelsQueryOptions())
   },
+  head: () => ({
+    meta: [
+      {
+        title: 'LLMsModels - Discover & Compare State-of-the-Art AI Models',
+      },
+      {
+        name: 'description',
+        content:
+          'The most comprehensive database to compare open-weights and proprietary LLMs. Filter by reasoning capabilities, tool use, and more.',
+      },
+      {
+        name: 'keywords',
+        content:
+          'AI models, LLM, compare LLMs, open-weights models, AI database',
+      },
+    ],
+  }),
   component: IndexPage,
 })
 
