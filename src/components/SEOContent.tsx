@@ -2,7 +2,7 @@ import React from 'react'
 
 export const SEOContent: React.FC = () => {
   return (
-    <section className="mt-8 px-8 prose prose-gray max-w-none pb-12 border-t-4 border-black pt-12 bg-gray-50">
+    <section className="mt-8 md:px-8 prose prose-gray max-w-none pb-12 border-t-4 border-black pt-12 bg-gray-50">
       <h2 className="text-4xl font-black text-black uppercase mb-6 inline-block bg-pink-300 px-2 py-1 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         Everything You Need to Know About LLM Models
       </h2>
