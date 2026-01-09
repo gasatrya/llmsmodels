@@ -10,10 +10,11 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
 
-
 import type { QueryClient } from '@tanstack/react-query'
 import { DefaultCatchBoundary } from '@/components/DefaultCatchBoundary'
 import { NotFound } from '@/components/NotFound'
+
+import { Header } from '@/components/Header'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -52,8 +53,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
-        {children}
+      <body className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1">{children}</main>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

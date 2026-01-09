@@ -1,4 +1,5 @@
 import React from 'react'
+import { Check, Copy } from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { FlattenedModel } from '@/types/models'
@@ -18,33 +19,35 @@ const BooleanCell = ({
   )
 }
 
-
 const CopyableId = ({ id }: { id: string }) => {
   const [copied, setCopied] = React.useState(false)
 
-  const handleCopy = React.useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation()
-    try {
-      await navigator.clipboard.writeText(id)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('Failed to copy text: ', err)
-    }
-  }, [id])
+  const handleCopy = React.useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation()
+      try {
+        await navigator.clipboard.writeText(id)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (err) {
+        console.error('Failed to copy text: ', err)
+      }
+    },
+    [id],
+  )
 
   return (
     <div
       onClick={handleCopy}
-      className="group flex items-center gap-1.5 cursor-pointer max-w-full"
+      className="group flex items-center gap-2 cursor-pointer max-w-full"
       title="Click to copy ID"
     >
       <span className="font-mono text-xs truncate">{id}</span>
-      <span className="shrink-0 flex items-center justify-center w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-200">
+      <span className="shrink-0 flex items-center justify-center w-3.5 h-3.5 text-black opacity-40 group-hover:opacity-100 transition-all duration-200">
         {copied ? (
-          <span className="text-green-600 text-[10px]">✓</span>
+          <Check className="w-full h-full text-green-600 stroke-[3px]" />
         ) : (
-          <span className="text-[10px]">📋</span>
+          <Copy className="w-full h-full stroke-[3px]" />
         )}
       </span>
     </div>

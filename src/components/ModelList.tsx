@@ -34,19 +34,22 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
       className="h-full overflow-auto border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none"
     >
       <table className="min-w-full table-fixed">
-        <thead className="bg-yellow-300 sticky top-0 z-10 border-b-4 border-black">
+        <thead className="bg-[#FEF08A] sticky top-0 z-10 border-b-4 border-black">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
                   className="px-4 py-4 text-left text-sm font-black text-black uppercase tracking-wider border-r-2 border-black last:border-r-0"
-                  style={{ width: header.getSize(), minWidth: header.getSize() }}
+                  style={{
+                    width: header.getSize(),
+                    minWidth: header.getSize(),
+                  }}
                 >
                   {header.column.getCanSort() ? (
                     <button
                       onClick={header.column.getToggleSortingHandler()}
-                      className="flex items-center space-x-1 hover:bg-black hover:text-yellow-300 px-2 py-1 -ml-2 border-2 border-transparent hover:border-black transition-colors"
+                      className="flex items-center space-x-1 hover:bg-black hover:text-white px-2 py-1 -ml-2 border-2 border-transparent hover:border-black transition-colors"
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -88,7 +91,10 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
                   <td
                     key={cell.id}
                     className="px-4 py-3 text-sm whitespace-nowrap overflow-hidden text-ellipsis font-medium border-r-2 border-black last:border-r-0"
-                    style={{ width: cell.column.getSize(), minWidth: cell.column.getSize() }}
+                    style={{
+                      width: cell.column.getSize(),
+                      minWidth: cell.column.getSize(),
+                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
