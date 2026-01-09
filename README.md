@@ -2,7 +2,7 @@
 
 LLMsModels is a comprehensive, neobrutalist-designed database for comparing and discovering state-of-the-art AI models. From open-weights models to proprietary APIs, it provides detailed insights into capabilities like reasoning, tool use, and costs.
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://llmsmodels.com)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/29e895de-46dc-4048-8708-1cfe276bf032/deploy-status)](https://app.netlify.com/projects/llmsmodels/deploys)
 
 ## ✨ Features
 
