@@ -1,5 +1,13 @@
 import React from 'react'
-import { Check, Copy } from 'lucide-react'
+import {
+  Check,
+  Copy,
+  FileText,
+  Image as ImageIcon,
+  Mic,
+  Type,
+  Video,
+} from 'lucide-react'
 import { createColumnHelper } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { FlattenedModel } from '@/types/models'
@@ -59,9 +67,83 @@ const formatNumber = (value: number | undefined | null): string => {
   return value.toLocaleString()
 }
 
+const formatCost = (value: number | undefined | null): string => {
+  if (value === undefined || value === null) return '-'
+  return `$${value.toLocaleString()}`
+}
+
 const formatDate = (value: string | undefined): string => {
   if (!value) return '-'
   return value
+}
+
+const ModalityIcons = ({ modalities }: { modalities: Array<string> }) => {
+  if (modalities.length === 0) return <span>-</span>
+
+  return (
+    <div className="flex gap-1.5 items-center">
+      {modalities.map((mod) => {
+        const key = mod.toLowerCase()
+        const iconProps = { className: 'w-3.5 h-3.5', strokeWidth: 2.5 }
+
+        if (key === 'text')
+          return (
+            <Type
+              key={mod}
+              {...iconProps}
+              className={`${iconProps.className} text-blue-500`}
+              title="Text"
+            />
+          )
+        if (key === 'image')
+          return (
+            <ImageIcon
+              key={mod}
+              {...iconProps}
+              className={`${iconProps.className} text-purple-500`}
+              title="Image"
+            />
+          )
+        if (key === 'audio')
+          return (
+            <Mic
+              key={mod}
+              {...iconProps}
+              className={`${iconProps.className} text-amber-500`}
+              title="Audio"
+            />
+          )
+        if (key === 'video')
+          return (
+            <Video
+              key={mod}
+              {...iconProps}
+              className={`${iconProps.className} text-red-500`}
+              title="Video"
+            />
+          )
+        if (key === 'pdf')
+          return (
+            <FileText
+              key={mod}
+              {...iconProps}
+              className={`${iconProps.className} text-orange-500`}
+              title="PDF"
+            />
+          )
+
+        return (
+          <span
+            key={mod}
+            className="text-[10px] font-bold border border-current px-0.5 rounded-[2px]"
+            title={mod}
+          >
+            {mod[0].toUpperCase()}
+          </span>
+        )
+      })}
+    </div>
+  )
 }
 
 export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
@@ -123,24 +205,22 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
     size: 100,
   }) as ColumnDef<FlattenedModel>,
 
-  // 9. Input Modalities (comma-separated)
+  // 9. Input Modalities (icons)
   columnHelper.accessor('inputModalities', {
     header: 'Input Modalities',
-    cell: (info) => {
-      const value = info.getValue<Array<string>>()
-      return <span className="text-xs">{value.join(', ')}</span>
-    },
+    cell: (info) => (
+      <ModalityIcons modalities={info.getValue<Array<string>>()} />
+    ),
     enableSorting: false,
     size: 150,
   }) as ColumnDef<FlattenedModel>,
 
-  // 10. Output Modalities (comma-separated)
+  // 10. Output Modalities (icons)
   columnHelper.accessor('outputModalities', {
     header: 'Output Modalities',
-    cell: (info) => {
-      const value = info.getValue<Array<string>>()
-      return <span className="text-xs">{value.join(', ')}</span>
-    },
+    cell: (info) => (
+      <ModalityIcons modalities={info.getValue<Array<string>>()} />
+    ),
     enableSorting: false,
     size: 150,
   }) as ColumnDef<FlattenedModel>,
@@ -149,7 +229,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   columnHelper.accessor('inputCost', {
     header: 'Input Cost',
     cell: (info) => (
-      <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
+      <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
     size: 80,
@@ -159,7 +239,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   columnHelper.accessor('outputCost', {
     header: 'Output Cost',
     cell: (info) => (
-      <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
+      <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
     size: 100,
@@ -169,7 +249,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   columnHelper.accessor('reasoningCost', {
     header: 'Reasoning Cost',
     cell: (info) => (
-      <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
+      <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
     size: 120,
@@ -179,7 +259,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   columnHelper.accessor('cacheReadCost', {
     header: 'Cache Read',
     cell: (info) => (
-      <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
+      <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
     size: 100,
@@ -189,7 +269,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   columnHelper.accessor('cacheWriteCost', {
     header: 'Cache Write',
     cell: (info) => (
-      <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
+      <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
     size: 100,
@@ -199,7 +279,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   columnHelper.accessor('audioInputCost', {
     header: 'Audio Input',
     cell: (info) => (
-      <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
+      <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
     size: 100,
@@ -209,7 +289,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   columnHelper.accessor('audioOutputCost', {
     header: 'Audio Output',
     cell: (info) => (
-      <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
+      <span className="font-mono text-xs">{formatCost(info.getValue())}</span>
     ),
     enableSorting: true,
     size: 100,
