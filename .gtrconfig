@@ -1,8 +1,0 @@
-# gtr config
-
-[hooks]
-    postCreate = npm install
-
-[defaults]
-    editor = zed
-    ai = opencode
