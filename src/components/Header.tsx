@@ -17,8 +17,14 @@ export const Header = () => {
           })}
           className="flex items-center gap-2 md:gap-3 group decoration-transparent"
         >
-          <div className="size-8 md:size-10 bg-black text-white flex items-center justify-center font-black text-lg md:text-xl border-2 border-black group-hover:bg-[#FEF08A] group-hover:text-black transition-colors">
-            LM
+          <div className="size-8 md:size-10 bg-black text-white flex items-center justify-center border-2 border-black group-hover:bg-[#FEF08A] group-hover:text-black transition-colors">
+            <svg
+              viewBox="0 0 100 100"
+              fill="currentColor"
+              className="size-5 md:size-6"
+            >
+              <path d="M 25 20 L 50 20 L 50 55 L 75 55 L 75 80 L 25 80 Z" />
+            </svg>
           </div>
           <span className="text-lg md:text-2xl font-black uppercase tracking-tighter text-black">
             LLMsModels
