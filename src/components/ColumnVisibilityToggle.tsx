@@ -60,12 +60,12 @@ export function ColumnVisibilityToggle({
       <button
         type="button"
         onClick={toggleDropdown}
-        className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        className="flex items-center gap-2 px-3 py-2 text-sm bg-white border-2 border-black rounded-none hover:bg-yellow-200 text-black transition-colors shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
         aria-label="Toggle column visibility"
         aria-expanded={isOpen}
       >
-        <Settings className="w-4 h-4" aria-hidden="true" />
-        <span>Columns</span>
+        <Settings className="w-4 h-4" aria-hidden="true" strokeWidth={2.5} />
+        <span className="font-bold uppercase">Columns</span>
       </button>
 
       {isOpen && (
@@ -76,38 +76,38 @@ export function ColumnVisibilityToggle({
             aria-hidden="true"
           />
           <div
-            className="absolute right-0 top-full mt-1 z-20 w-64 bg-white border border-gray-200 rounded-md shadow-lg p-2"
+            className="absolute right-0 top-full mt-2 z-20 w-64 bg-white border-4 border-black rounded-none shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-0"
             role="dialog"
             aria-label="Column visibility options"
           >
-            <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">
-              <span className="text-sm font-medium text-gray-900">
+            <div className="flex items-center justify-between px-3 py-3 border-b-4 border-black bg-blue-200">
+              <span className="text-sm font-black text-black uppercase">
                 Visible Columns
               </span>
             </div>
 
-            <div className="flex gap-2 px-2 py-2 border-b border-gray-200">
+            <div className="flex gap-2 px-3 py-3 border-b-4 border-black">
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700"
+                className="flex-1 px-2 py-1.5 text-xs bg-white border-2 border-black hover:bg-gray-200 rounded-none text-black font-bold uppercase transition-colors"
               >
                 Reset
               </button>
               <button
                 type="button"
                 onClick={handleShowAll}
-                className="flex-1 px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 rounded-md text-blue-700"
+                className="flex-1 px-2 py-1.5 text-xs bg-black border-2 border-black hover:bg-gray-800 rounded-none text-white font-bold uppercase transition-colors"
               >
                 Show all
               </button>
             </div>
 
-            <ul className="max-h-80 overflow-y-auto py-1">
+            <ul className="max-h-80 overflow-y-auto py-2 px-1">
               {ALL_COLUMNS.map((column) => (
                 <li
                   key={column.id}
-                  className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-50"
+                  className="flex items-center gap-2 px-2 py-1.5 hover:bg-yellow-100 rounded-none cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
@@ -116,12 +116,12 @@ export function ColumnVisibilityToggle({
                     onChange={(e) =>
                       handleCheckboxChange(column.id, e.target.checked)
                     }
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded-none border-2 border-black bg-white checked:bg-black focus:ring-0"
                     aria-label={`Toggle ${column.label} column visibility`}
                   />
                   <label
                     htmlFor={`column-${column.id}`}
-                    className="text-sm text-gray-700 cursor-pointer"
+                    className="text-sm text-black cursor-pointer flex-1 font-bold"
                   >
                     {column.label}
                   </label>

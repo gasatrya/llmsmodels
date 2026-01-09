@@ -5,17 +5,13 @@ import { z } from 'zod'
 import type { FlattenedModel, ModelsApiResponse } from '@/types/models'
 import { flattenModelsData } from '@/lib/models-transform'
 
-// ============================================
 // Module-level cache for in-memory caching
-// ============================================
 let allModelsCache: Array<FlattenedModel> | null = null
 let cacheTimestamp: number | null = null
 
 const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours
 
-// ============================================
 // Zod schema for input validation
-// ============================================
 // No input parameters needed for fetching all models
 const GetModelsSchema = z.object({})
 
@@ -25,9 +21,7 @@ export interface GetModelsResponse {
   data: Array<FlattenedModel>
 }
 
-// ============================================
 // Fetch and cache models data from models.dev
-// ============================================
 async function loadModelsData(): Promise<Array<FlattenedModel>> {
   const now = Date.now()
 
@@ -61,18 +55,8 @@ async function loadModelsData(): Promise<Array<FlattenedModel>> {
   return allModelsCache
 }
 
-// ============================================
-// Clear cache function (for manual invalidation)
-// ============================================
-export function clearModelsCache(): void {
-  allModelsCache = null
-  cacheTimestamp = null
-}
-
-// ============================================
 // Main server function with Zod validation and Netlify Durable Cache
-// ============================================
-export const getModels = createServerFn({ method: 'GET', response: 'raw' })
+export const getModels = createServerFn({ method: 'GET' })
   .inputValidator(GetModelsSchema)
   .handler(async () => {
     try {
@@ -116,9 +100,7 @@ export const getModels = createServerFn({ method: 'GET', response: 'raw' })
     }
   })
 
-// ============================================
 // Query options factory for TanStack Query
-// ============================================
 export const modelsQueryOptions = () =>
   queryOptions({
     queryKey: ['models'],

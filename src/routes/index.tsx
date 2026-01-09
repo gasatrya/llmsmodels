@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import {
-  keepPreviousData,
-  useQuery,
   useSuspenseQuery,
 } from '@tanstack/react-query'
 import {
@@ -18,7 +16,7 @@ import type { ColumnVisibilityState } from '@/types/column-visibility'
 import type { FlattenedModel } from '@/types/models'
 import type { SimpleFiltersState } from '@/types/filters'
 import { ALL_COLUMNS, DEFAULT_VISIBLE_COLUMNS } from '@/types/column-visibility'
-import { getModels, modelsQueryOptions } from '@/lib/models'
+import { modelsQueryOptions } from '@/lib/models'
 import { modelColumns } from '@/lib/model-columns'
 import { ModelList } from '@/components/ModelList'
 import { SearchBar } from '@/components/SearchBar'
@@ -86,9 +84,6 @@ function IndexPage() {
   // Sorting state
   const [sorting, setSorting] = useState<SortingState>([])
 
-  // Row selection state
-  const [rowSelection, setRowSelection] = useState({})
-
   // Global filter state
   const [globalFilter, setGlobalFilter] = useState<string>(search.search ?? '')
 
@@ -151,37 +146,35 @@ function IndexPage() {
       sorting,
       globalFilter,
       columnVisibility,
-      rowSelection,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     globalFilterFn: fuzzyFilter,
-    enableRowSelection: true,
-    enableMultiRowSelection: true,
     getRowId: (row) => `${row.providerId}-${row.modelId}`,
   })
 
-  const selectedRows = table.getSelectedRowModel().rows
   const totalCount = filteredData.length
 
   return (
-    <div className="container mx-auto px-4 py-8 h-screen flex flex-col">
-      <header className="mb-8 flex-none">
-        <h1 className="text-3xl font-bold text-gray-900">AI Models Explorer</h1>
-        <p className="text-gray-600 mt-2">
-          Browse and compare {totalCount.toLocaleString()} AI models
+    <div className="container mx-auto px-4 py-8 min-h-screen flex flex-col font-sans text-black">
+      <header className="mb-8 flex-none pt-20">
+        <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-4 text-black drop-shadow-[4px_4px_0px_rgba(255,230,0,1)]">
+          Discover State-of-the-Art <span className="bg-black text-white px-2">AI Models</span>
+        </h1>
+        <p className="text-xl text-black font-bold max-w-2xl leading-relaxed border-l-8 border-black pl-4">
+          The most comprehensive database to compare {totalCount.toLocaleString()} open-weights and proprietary LLMs. 
+          Filter by reasoning capabilities, tool use, and more.
         </p>
       </header>
 
-      <div className="space-y-4 flex-1 flex flex-col min-h-0">
+      <div className="space-y-6 flex-none">
         {/* Search Bar and Column Visibility */}
-        <div className="flex gap-4 items-start flex-none">
+        <div className="flex flex-col md:flex-row gap-4 items-start flex-none">
           <SearchBar
             value={globalFilter}
             onChange={setGlobalFilter}
-            className="max-w-md flex-1"
+            className="w-full md:max-w-md flex-1"
           />
           <ColumnVisibilityToggle
             table={table}
@@ -194,37 +187,53 @@ function IndexPage() {
           <SimplifiedFilters
             filters={filters}
             onChange={setFilters}
-            className="mt-4"
+            className="mt-2"
           />
         </div>
 
-        {/* Selection info */}
-        {selectedRows.length > 0 && (
-          <div className="px-4 py-3 bg-blue-50 text-blue-800 rounded-lg flex items-center justify-between flex-none">
-            <span className="font-medium">
-              {selectedRows.length} row{selectedRows.length !== 1 ? 's' : ''}{' '}
-              selected
-            </span>
-            <button
-              onClick={() => setRowSelection({})}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            >
-              Clear selection
-            </button>
-          </div>
-        )}
 
-        {/* Table Area - flex-1 to fill remaining space */}
+        {/* Table Area - fixed height for scrolling */}
         {table.getRowModel().rows.length === 0 ? (
-          <div className="flex items-center justify-center py-12 flex-1">
-            <div className="text-gray-500">No models found</div>
+          <div className="flex items-center justify-center py-20 border-4 border-dashed border-black bg-gray-50">
+            <div className="text-black font-bold text-lg uppercase">No models found matching your criteria</div>
           </div>
         ) : (
-          <div className="flex-1 min-h-0 rounded-md overflow-hidden bg-white relative">
+          <div className="h-[600px] relative">
             <ModelList table={table} />
           </div>
         )}
       </div>
+
+      {/* SEO Long Description Section - Outside table wrapper */}
+      <section className="mt-8 px-8 prose prose-gray max-w-none pb-12 border-t-4 border-black pt-12 bg-gray-50">
+        <h2 className="text-4xl font-black text-black uppercase mb-6 inline-block bg-pink-300 px-2 py-1 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          Everything You Need to Know About LLM Models
+        </h2>
+        
+        <div className="grid md:grid-cols-2 gap-12 text-black">
+          <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">Understanding Open Weights vs. Proprietary Models</h3>
+            <p className="mb-4">
+              When choosing a Large Language Model (LLM), one of the first decisions is between open-weights and proprietary models. 
+              <strong>Open-weights models</strong> (often called "open source" loosely) allow you to run the model on your own infrastructure, giving you full control over privacy and customization. 
+              Popular examples include Llama 3, Mistral, and Gemma.
+            </p>
+            <p>
+              <strong>Proprietary models</strong>, like GPT-4 or Claude 3.5 Sonnet, are accessed via API. They often offer state-of-the-art performance but come with usage costs and data privacy considerations.
+            </p>
+          </div>
+
+          <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">Reasoning Capabilities & Tool Use</h3>
+            <p className="mb-4">
+              Modern LLMs are evolving beyond text generation. <strong>Reasoning models</strong> (like OpenAI o1 or DeepSeek R1) uses "chain of thought" to solve complex logic, math, and coding problems with higher accuracy.
+            </p>
+            <p>
+              <strong>Tool Use</strong> (or Function Calling) is critical for building agents. Models with high "Tool Call" capabilities can reliably interact with external APIs, databases, and software environments, making them the engines of agentic workflows.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

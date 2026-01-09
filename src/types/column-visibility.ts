@@ -65,11 +65,13 @@ export const ALL_COLUMNS: Array<ColumnDefinition> = [
  */
 export const DEFAULT_VISIBLE_COLUMNS: Array<string> = [
   'select',
-  'providerName',
   'modelName',
-  'toolCall',
-  'inputCost',
+  'providerName',
+  'modelId',
   'contextLimit',
+  'inputCost',
+  'outputCost',
+  'weights',
 ]
 
 /**

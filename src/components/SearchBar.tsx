@@ -35,27 +35,28 @@ export function SearchBar({
 
   return (
     <div
-      className={`relative flex items-center bg-white rounded-lg border border-gray-300 ${className ?? ''}`}
+      className={`relative flex items-center bg-white rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${className ?? ''}`}
     >
       <Search
-        className="absolute left-3 text-gray-400 w-4 h-4"
+        className="absolute left-3 text-black w-4 h-4"
         aria-hidden="true"
+        strokeWidth={3}
       />
       <input
         type="search"
         value={inputValue}
         onChange={handleChange}
         placeholder={placeholder}
-        className="pl-10 pr-8 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="pl-10 pr-8 py-2 w-full bg-transparent text-black placeholder:text-gray-500 focus:outline-none font-bold rounded-none"
         aria-label="Search models and providers"
       />
       {inputValue && (
         <button
           onClick={handleClear}
-          className="absolute right-2 text-gray-400 hover:text-gray-600"
+          className="absolute right-2 text-black hover:bg-red-400 hover:text-white transition-colors border-l-2 border-black h-full px-2"
           aria-label="Clear search"
         >
-          <X className="w-4 h-4" aria-hidden="true" />
+          <X className="w-4 h-4" aria-hidden="true" strokeWidth={3} />
         </button>
       )}
     </div>

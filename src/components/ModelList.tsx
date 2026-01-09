@@ -31,22 +31,22 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
   return (
     <div
       ref={parentRef}
-      className="h-full overflow-auto rounded-lg border border-gray-200 bg-white"
+      className="h-full overflow-auto border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none"
     >
-      <table className="min-w-full divide-y divide-gray-200 table-fixed">
-        <thead className="bg-white sticky top-0 z-10 shadow-sm">
+      <table className="min-w-full table-fixed">
+        <thead className="bg-yellow-300 sticky top-0 z-10 border-b-4 border-black">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-gray-200"
-                  style={{ width: header.getSize() }}
+                  className="px-4 py-4 text-left text-sm font-black text-black uppercase tracking-wider border-r-2 border-black last:border-r-0"
+                  style={{ width: header.getSize(), minWidth: header.getSize() }}
                 >
                   {header.column.getCanSort() ? (
                     <button
                       onClick={header.column.getToggleSortingHandler()}
-                      className="flex items-center space-x-1 hover:text-gray-700 focus:outline-none"
+                      className="flex items-center space-x-1 hover:bg-black hover:text-yellow-300 px-2 py-1 -ml-2 border-2 border-transparent hover:border-black transition-colors"
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -66,7 +66,7 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
             </tr>
           ))}
         </thead>
-        <tbody className="divide-y divide-gray-200">
+        <tbody className="divide-y-2 divide-black text-black bg-white">
           {paddingTop > 0 && (
             <tr>
               <td
@@ -80,15 +80,15 @@ export function ModelList({ table }: ModelListProps): React.ReactElement {
             return (
               <tr
                 key={row.id}
-                className={`hover:bg-gray-50 ${
-                  row.getIsSelected() ? 'bg-blue-50' : ''
+                className={`hover:bg-blue-100 transition-colors border-b-2 border-black last:border-b-0 ${
+                  row.getIsSelected() ? 'bg-green-200' : ''
                 }`}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis"
-                    style={{ width: cell.column.getSize() }}
+                    className="px-4 py-3 text-sm whitespace-nowrap overflow-hidden text-ellipsis font-medium border-r-2 border-black last:border-r-0"
+                    style={{ width: cell.column.getSize(), minWidth: cell.column.getSize() }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>

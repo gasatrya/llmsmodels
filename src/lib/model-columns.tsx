@@ -18,34 +18,36 @@ const BooleanCell = ({
   )
 }
 
-const IndeterminateCheckbox = ({
-  checked,
-  indeterminate,
-  onChange,
-  disabled,
-}: {
-  checked: boolean
-  indeterminate?: boolean
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  disabled?: boolean
-}): React.ReactElement => {
-  const ref = React.useRef<HTMLInputElement>(null)
 
-  React.useEffect(() => {
-    if (typeof indeterminate === 'boolean' && ref.current) {
-      ref.current.indeterminate = !checked && indeterminate
+const CopyableId = ({ id }: { id: string }) => {
+  const [copied, setCopied] = React.useState(false)
+
+  const handleCopy = React.useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    try {
+      await navigator.clipboard.writeText(id)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
     }
-  }, [ref, indeterminate, checked])
+  }, [id])
 
   return (
-    <input
-      ref={ref}
-      type="checkbox"
-      checked={checked}
-      onChange={onChange}
-      disabled={disabled}
-      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
-    />
+    <div
+      onClick={handleCopy}
+      className="group flex items-center gap-1.5 cursor-pointer max-w-full"
+      title="Click to copy ID"
+    >
+      <span className="font-mono text-xs truncate">{id}</span>
+      <span className="shrink-0 flex items-center justify-center w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-all duration-200">
+        {copied ? (
+          <span className="text-green-600 text-[10px]">✓</span>
+        ) : (
+          <span className="text-[10px]">📋</span>
+        )}
+      </span>
+    </div>
   )
 }
 
@@ -60,28 +62,7 @@ const formatDate = (value: string | undefined): string => {
 }
 
 export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
-  // 1. Select checkbox column
-  columnHelper.display({
-    id: 'select',
-    header: ({ table }) => (
-      <IndeterminateCheckbox
-        checked={table.getIsAllRowsSelected()}
-        indeterminate={table.getIsSomeRowsSelected()}
-        onChange={table.getToggleAllRowsSelectedHandler()}
-      />
-    ),
-    cell: ({ row }) => (
-      <IndeterminateCheckbox
-        checked={row.getIsSelected()}
-        disabled={!row.getCanSelect()}
-        onChange={row.getToggleSelectedHandler()}
-      />
-    ),
-    enableSorting: false,
-    size: 40,
-  }) as ColumnDef<FlattenedModel>,
-
-  // 2. Provider Name
+  // 1. Provider Name
   columnHelper.accessor('providerName', {
     header: 'Provider',
     cell: (info) => info.getValue(),
@@ -118,11 +99,9 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
   // 6. Model ID (monospace)
   columnHelper.accessor('modelId', {
     header: 'Model ID',
-    cell: (info) => (
-      <span className="font-mono text-xs">{info.getValue()}</span>
-    ),
+    cell: (info) => <CopyableId id={info.getValue()} />,
     enableSorting: true,
-    size: 150,
+    size: 250,
   }) as ColumnDef<FlattenedModel>,
 
   // 7. Tool Call
@@ -165,22 +144,22 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
 
   // 11. Input Cost
   columnHelper.accessor('inputCost', {
-    header: 'Input Cost',
+    header: 'Input',
     cell: (info) => (
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 80,
   }) as ColumnDef<FlattenedModel>,
 
   // 12. Output Cost
   columnHelper.accessor('outputCost', {
-    header: 'Output Cost',
+    header: 'Output',
     cell: (info) => (
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 80,
   }) as ColumnDef<FlattenedModel>,
 
   // 13. Reasoning Cost
@@ -240,7 +219,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       <span className="font-mono text-xs">{formatNumber(info.getValue())}</span>
     ),
     enableSorting: true,
-    size: 100,
+    size: 80,
   }) as ColumnDef<FlattenedModel>,
 
   // 19. Input Limit
@@ -296,7 +275,7 @@ export const modelColumns: Array<ColumnDef<FlattenedModel>> = [
       )
     },
     enableSorting: true,
-    size: 100,
+    size: 80,
   }) as ColumnDef<FlattenedModel>,
 
   // 24. Knowledge
