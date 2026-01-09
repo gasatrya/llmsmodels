@@ -7,7 +7,7 @@ export const SEOContent: React.FC = () => {
         Everything You Need to Know About LLM Models
       </h2>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12 text-black">
+      <div className="grid md:grid-cols-2 gap-12 text-black">
         <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">
             Understanding Open Weights vs. Proprietary Models
@@ -15,16 +15,17 @@ export const SEOContent: React.FC = () => {
           <p className="mb-4">
             When choosing a Large Language Model (LLM), one of the first
             decisions is between open-weights and proprietary models.
-            <strong>Open-weights models</strong> (often called "open source"
-            loosely) allow you to run the model on your own infrastructure,
-            giving you full control over privacy and customization. Popular
-            examples include Llama 3, Mistral, and Gemma.
+            <strong>Open-weights models</strong> allow you to run the model on
+            your own infrastructure, giving you full control over privacy and
+            customization. Popular examples include the{' '}
+            <strong>Llama series</strong>, <strong>Qwen</strong>, and{' '}
+            <strong>DeepSeek</strong>.
           </p>
           <p>
-            <strong>Proprietary models</strong>, like GPT-4 or Claude 3.5
-            Sonnet, are accessed via API. They often offer state-of-the-art
-            performance but come with usage costs and data privacy
-            considerations.
+            <strong>Proprietary models</strong>, like <strong>GPT-5.2</strong>{' '}
+            or <strong>Claude 4.5 Opus</strong>, are accessed via API. They
+            often offer state-of-the-art performance but come with usage costs
+            and data privacy considerations.
           </p>
         </div>
 
@@ -34,21 +35,22 @@ export const SEOContent: React.FC = () => {
           </h3>
           <p className="mb-4">
             Modern LLMs are evolving beyond text generation.{' '}
-            <strong>Reasoning models</strong> (like OpenAI o1 or DeepSeek R1)
+            <strong>Reasoning models</strong> (like{' '}
+            <strong>GPT-5.2 Thinking</strong> or <strong>Claude 4.5</strong>)
             uses "chain of thought" to solve complex logic, math, and coding
             problems with higher accuracy.
           </p>
           <p>
             <strong>Tool Use</strong> (or Function Calling) is critical for
-            building agents. Models with high "Tool Call" capabilities can
-            reliably interact with external APIs, databases, and software
+            building automated agents. Models with high "Tool Call" capabilities
+            can reliably interact with external APIs, databases, and software
             environments, making them the engines of agentic workflows.
           </p>
         </div>
 
         <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">
-            The Importance of Context Windows
+            The Power of Context Windows
           </h3>
           <p className="mb-4">
             The <strong>context window</strong> determines how much information
@@ -56,57 +58,27 @@ export const SEOContent: React.FC = () => {
             your prompt and the model&apos;s previous responses.
           </p>
           <p>
-            Models like Gemini 1.5 Pro offer massive windows (up to 2 million
-            tokens), allowing users to upload entire codebases or long documents
-            for analysis without losing track of details.
+            Models like <strong>Gemini 3</strong> offer massive windows
+            (exceeding 1 million tokens), allowing users to upload entire
+            codebases or massive document libraries for analysis without losing
+            track of subtle details.
           </p>
         </div>
 
         <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">
-            Benchmarks: Measuring AI Intelligence
+            Tokenization and Economics
           </h3>
           <p className="mb-4">
-            How do we compare models? Benchmarks like <strong>MMLU</strong>{' '}
-            (Massive Multitask Language Understanding) and{' '}
-            <strong>HumanEval</strong> (coding) provide standardized scores.
-          </p>
-          <p>
-            However, real-world performance often differs from synthetic
-            benchmarks. That&apos;s why "vibe checks" and Chatbot Arena rankings
-            are becoming equally important for evaluating model quality.
-          </p>
-        </div>
-
-        <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">
-            Fine-tuning vs. RAG
-          </h3>
-          <p className="mb-4">
-            To make an LLM work with your private data, you can use{' '}
-            <strong>Fine-tuning</strong> (training the model on your data) or{' '}
-            <strong>RAG</strong> (Retrieval-Augmented Generation).
-          </p>
-          <p>
-            RAG is generally preferred for most business use cases as it allows
-            the model to "look up" information in real-time, reducing
-            hallucinations and avoiding the cost of retraining.
-          </p>
-        </div>
-
-        <div className="bg-white p-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <h3 className="text-xl font-bold text-black mb-3 border-b-2 border-black inline-block">
-            Tokenization and Cost
-          </h3>
-          <p className="mb-4">
-            LLMs don&apos;t read words; they read <strong>tokens</strong>{' '}
+            LLMs don&apos;t read words; they process <strong>tokens</strong>{' '}
             (roughly 0.75 words per token). This is how usage is metered and
-            charged by API providers.
+            charged by API providers like OpenAI and Anthropic.
           </p>
           <p>
-            Understanding token efficiency is key to managing costs, especially
-            when deploying agents that might make dozens of calls to solve a
-            single user request.
+            Understanding token efficiency is key to managing costs in 2026,
+            especially when deploying multi-agent systems that make recursive
+            calls to models like <strong>GPT-5.2 Pro</strong> or{' '}
+            <strong>Claude 4.5 Sonnet</strong>.
           </p>
         </div>
       </div>
