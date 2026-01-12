@@ -1,4 +1,4 @@
-# LLMsModels
+# LLMsModels | AI Models Database
 
 LLMsModels is a comprehensive, neobrutalist-designed database for comparing and discovering state-of-the-art AI models. From open-weights models to proprietary APIs, it provides detailed insights into capabilities like reasoning, tool use, and costs.
 
@@ -6,11 +6,11 @@ LLMsModels is a comprehensive, neobrutalist-designed database for comparing and 
 
 ## ✨ Features
 
-- **Model Comparison**: View and compare parameters, costs, and capabilities side-by-side.
 - **Advanced Filtering**: Filter by reasoning, tool call, open weights, and more.
 - **Live Search**: Instant discovery of models.
 - **Neobrutalist UI**: A bold, high-contrast interface built with premium aesthetics.
 - **SEO Optimized**: Built with performance and discoverability in mind.
+- **Model Comparison**: View and compare parameters, costs, and capabilities side-by-side. _(soon)_
 
 ## 🚀 Tech Stack
 
@@ -33,4 +33,4 @@ This project is open-sourced under the MIT License.
 
 ---
 
-Created with ❤️ by [Satrya](https://x.com/satrya)
+Created with ❤️ by [Ga Satrya](https://x.com/gasatrya)
