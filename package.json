@@ -9,8 +9,7 @@
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix",
-    "prepare": "husky",
-    "deploy": "netlify deploy --prod"
+    "prepare": "husky"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
