@@ -53,11 +53,11 @@ function AboutPage() {
             This project was created and is maintained by{' '}
             <span className="font-black">
               <a
-                href="https://x.com/satrya"
+                href="https://x.com/gasatrya"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Satrya
+                Ga Satrya
               </a>
             </span>
             .
