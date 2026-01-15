@@ -9,7 +9,7 @@ export const Route = createFileRoute('/about')({
       {
         name: 'description',
         content:
-          'Learn more about LLMsModels, the most comprehensive database for AI models, its creator Satrya, and the data sources that power it.',
+          'Learn more about LLMsModels, the most comprehensive database for AI models, its creator Ga Satrya, and the data sources that power it.',
       },
     ],
   }),
